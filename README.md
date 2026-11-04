@@ -8,6 +8,7 @@ proves the difference by running the same harmless probe from both accounts.
 Fully offline. No AI, no telemetry, no sign-in.
 
 - **Live demo:** https://spare-room-demo.netlify.app (replays output recorded from the real tool on a test machine)
+- **Demo video:** https://spare-room-demo.netlify.app/real-demo.mp4 (60-90 s screen recording of the real tool, captions burned in; also on the site's home page)
 - **Download:** [latest release](https://github.com/Nebiyu-6249/spare-room/releases/latest) (`spareroom.exe` + `SHA256SUMS.txt`)
 - **Results:** [EVALUATION.md](EVALUATION.md)
 
@@ -143,6 +144,7 @@ or cookies and loads nothing from other sites.
 - `packaging/` exe build and the export of recorded results for the web demo
 - `web/` the browser demo (Next.js static export)
 - `docs/` the manual account test checklist
+- `tools/record_demo.ps1` records the demo video (two titled windows only, demo data and the fake laptop only); `tools/video/` holds the site checks
 
 ## Credits
 

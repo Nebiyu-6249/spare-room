@@ -241,3 +241,15 @@ Tests: 86 passing.
   (all users); Python and VS Code missing (installed for the normal account only).
 - The copy in C:\Program Files\Spare Room is still 0.1.0 (replacing it needs
   admin); C:\SpareRoomShared\spareroom.exe is 0.1.1.
+
+### Real demo video (in progress)
+- The old site walkthrough (`demo-video/spare-room-walkthrough.*`,
+  `tools/video/record.mjs`) is deleted; it showed an earlier layout.
+- `tools/record_demo.ps1` (run by the user, not elevated) opens two titled
+  console windows, "Your account" and "The spare room" (the latter via
+  Start-Process -Credential from a Get-Credential prompt; the password is never
+  handled by the scripts), and records only those windows with ffmpeg gdigrab
+  by title. It uses only demo data and the fake laptop. A dry run on this machine
+  confirmed window-only capture at 150% display scaling (needs
+  __COMPAT_LAYER=HighDpiAware for ffmpeg).
+- EVALUATION.md now has the doctor result from the interview account.

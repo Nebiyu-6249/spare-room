@@ -102,16 +102,30 @@ for (const width of WIDTHS) {
   const page = await ctx.newPage();
   await page.goto(BASE + "/", { waitUntil: "networkidle" });
   const steps = [
-    [/^1\. Open the test assignment/, /13 of 13 reachable/],
-    [/^2\. Create the spare room/, /Ready in 29\.6 s/],
-    [/^3\. Open it again/, /0 of 13 reachable/],
+    [/^1\. Open the test assignment/, /13 of 13 reachable/, "Recorded in your account", "reachable"],
+    [/^2\. Create the spare room/, /Ready in 29\.6 s/, "Recorded while creating the spare room", null],
+    [/^3\. Open it again/, /0 of 13 reachable/, "Recorded in the spare room", "blocked"],
   ];
-  for (const [label, done] of steps) {
+  const svgWords = (w) => page.evaluate((word) =>
+    [...document.querySelectorAll("svg text")].filter((t) => t.textContent === word).length, w);
+  for (const [label, done, panel, word] of steps) {
     const btn = page.getByRole("button", { name: label });
     await btn.focus();
     await page.keyboard.press("Enter");
     try { await page.getByText(done).first().waitFor({ timeout: 15000 }); }
     catch { problems.push(`replay: "${label}" did not reach "${done}"`); }
+    await page.waitForTimeout(700); // let the smooth scroll settle
+    const inView = await page.evaluate((title) => {
+      const el = [...document.querySelectorAll("div")].find((d) => d.textContent === title);
+      if (!el) return false;
+      const r = el.getBoundingClientRect();
+      return r.top >= 0 && r.bottom <= window.innerHeight;
+    }, panel);
+    if (!inView) problems.push(`replay: "${panel}" was not scrolled into view`);
+    if (word && (await svgWords(word)) !== 13) problems.push(`replay: expected 13 "${word}" labels in the room after "${label}"`);
+  }
+  if (!(await page.getByText("The same 13 paths, tried from the spare room: 13 blocked", { exact: true }).isVisible())) {
+    problems.push("replay: no 13-blocked line");
   }
   if (!(await page.getByText(/13 reachable/).last().isVisible())) problems.push("replay: no closing line");
   await page.screenshot({ path: join(SHOTS, "home-replay-1440.png"), fullPage: false,

@@ -35,7 +35,7 @@ export default function Download() {
       <Cmd>{"spareroom.exe scan --demo\nspareroom.exe report --demo"}</Cmd>
 
       <SectionTitle>Then on your own machine</SectionTitle>
-      <Cmd>{"spareroom.exe report          # what code running as you could reach\nspareroom.exe setup           # create the spare room account (asks for admin)\nspareroom.exe finish-setup    # run once inside the spare room\nspareroom.exe verify          # inside the spare room: what it can still reach"}</Cmd>
+      <Cmd>{"spareroom.exe report          # what code running as you could reach\nspareroom.exe setup           # create the spare room account (asks for admin)\nspareroom.exe finish-setup    # run once inside the spare room\nspareroom.exe verify          # inside the spare room: what it can still reach\nspareroom.exe doctor          # inside the spare room: which coding tools are there"}</Cmd>
 
       <SectionTitle>Or run from source</SectionTitle>
       <p>Python 3.12, standard library only.</p>

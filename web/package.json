@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Browser demo for Spare Room, replaying recorded output",
   "scripts": {
-    "dev": "node scripts/copy-media.mjs && next dev",
-    "build": "node scripts/copy-media.mjs && next build"
+    "dev": "next dev",
+    "build": "next build"
   },
   "license": "UNLICENSED",
   "dependencies": {

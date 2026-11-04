@@ -25,6 +25,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -51,8 +52,10 @@ class AccountError(Exception):
     pass
 
 
-def validate_username(name: str) -> str:
-    """Return the name if it is safe to create, else raise AccountError."""
+def validate_username(name: str, new: bool = False) -> str:
+    """Return the name if it is safe to use, else raise AccountError. With
+    new=True (creating an account) the computer's own name is refused too, so
+    the sign-in name is never the confusing PCNAME\\PCNAME."""
     name = (name or "").strip()
     if not name:
         raise AccountError("Enter a user name.")
@@ -65,6 +68,9 @@ def validate_username(name: str) -> str:
     current = os.environ.get("USERNAME", "")
     if current and name.lower() == current.lower():
         raise AccountError("That is the account you are signed in to. Pick a new name.")
+    computer = os.environ.get("COMPUTERNAME", "")
+    if new and computer and name.lower() == computer.lower():
+        raise AccountError(f"'{name}' is this computer's name. Pick another so the sign-in name stays clear.")
     return name
 
 
@@ -227,7 +233,7 @@ def _header(name: str, result_path: Path) -> str:
 
 
 def setup_script(name: str, result_path: Path, copy_from: Optional[str] = None) -> str:
-    name = validate_username(name)
+    name = validate_username(name, new=True)
     copy_line = f"$copyFrom = {ps_quote(copy_from) if copy_from else '$null'}"
     return _header(name, result_path) + "\n" + copy_line + _COMMON + _SETUP_BODY
 
@@ -316,15 +322,31 @@ def current_account_is_admin(runner: Callable = None) -> bool:
 
 # --- The two admin flows -----------------------------------------------------
 
+def result_dir() -> Path:
+    """A fresh folder for the elevated step's result file.
+
+    Not tempfile.mkdtemp: on Windows its 0o700 folder grants access to the
+    folder's owner only, and a file the elevated window writes there is owned
+    by Administrators, which this unelevated process cannot read. A plain
+    mkdir inherits the temp folder's ACL, which names this user explicitly."""
+    d = Path(tempfile.gettempdir()) / f"spareroom-{uuid.uuid4().hex[:12]}"
+    d.mkdir()
+    return d
+
+
 def _run_with_result(script_fn, elevate: Callable, **kw) -> dict:
-    tmpdir = Path(tempfile.mkdtemp(prefix="spareroom-"))
+    tmpdir = result_dir()
     result_path = tmpdir / "result.json"
     try:
         script = script_fn(result_path=result_path, **kw)
         elevate(script)
         if not result_path.exists():
             raise AccountError("The elevated step ended without writing a result. Nothing may have changed.")
-        return json.loads(result_path.read_text(encoding="utf-8-sig"))
+        try:
+            return json.loads(result_path.read_text(encoding="utf-8-sig"))
+        except PermissionError:
+            raise AccountError("The elevated step finished, but its result file could not be read. "
+                               "Check what happened with: Get-LocalUser")
     finally:
         try:
             result_path.unlink(missing_ok=True)

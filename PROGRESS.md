@@ -200,3 +200,9 @@ Tests: 86 passing.
 - `dist/spareroom.exe` (PyInstaller 6.22.3, one file, unsigned) and
   `dist/SHA256SUMS.txt`, built by `packaging/build_exe.py`. Smoke-tested:
   --version, scan --demo, probe, setup --help.
+
+### Skipped after a safety stop: the web walkthrough component
+- Writing the three-step walkthrough for `/` ("Open the test assignment",
+  "Create interview account", "Open it again") was stopped by a safety check.
+  Per the user's rule it was not retried or rephrased. `/` is instead a short
+  overview of the recorded results that links to Results, Privacy and Download.

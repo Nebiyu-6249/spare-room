@@ -100,7 +100,7 @@ SPECS = [
         "ssh-id-rsa", "ssh", "private_key", (".ssh", "id_rsa"), "SSH private key",
         "high",
         "An SSH private key signs into servers and Git hosts as you. The s1ngularity payload grabbed id_rsa directly.",
-        "Move this key to the interview account's reach only, or use a hardware/agent-backed key. Passphrase-protect it.",
+        "Keep this key out of the interview account. Passphrase-protect it, or use a hardware or agent-backed key.",
         SRC_GITGUARDIAN,
     ),
     LocationSpec(
@@ -159,7 +159,7 @@ SPECS = [
         "gh-hosts", "token", "exists",
         ("AppData", "Roaming", "GitHub CLI", "hosts.yml"), "GitHub CLI token", "high",
         "The GitHub CLI stores your OAuth token in hosts.yml, full access to your repos.",
-        "Keep the GitHub CLI signed in only in the interview account, or use a fine-grained token there.",
+        "Do not sign the GitHub CLI in inside the interview account; if a task needs GitHub, use a short-lived fine-grained token there.",
         SRC_GH,
     ),
     LocationSpec(
@@ -196,14 +196,14 @@ SPECS = [
         "claude-creds", "ai_tool", "claude_creds", (".claude",), "Claude Code credentials",
         "high",
         "s1ngularity enumerated AI CLI config and tokens (Claude, Gemini, Q). A stored session token here acts as you.",
-        "Sign the AI CLIs in inside the interview account instead; turn off startup hooks there.",
+        "Do not sign your AI CLIs in inside the interview account; finish-setup turns their startup hooks off there.",
         SRC_GITGUARDIAN,
     ),
     LocationSpec(
         "gemini-settings", "ai_tool", "exists",
         (".gemini", "settings.json"), "Gemini CLI settings", "medium",
         "s1ngularity targeted the Gemini CLI's config alongside Claude and Q.",
-        "Keep the Gemini CLI signed in only in the interview account.",
+        "Do not sign the Gemini CLI in inside the interview account.",
         SRC_GITGUARDIAN,
     ),
     # shell_history

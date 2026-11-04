@@ -79,7 +79,7 @@ python, powershell, pyinstaller, pytest, next.js, typescript, tailwindcss, netli
 
 ## Links
 
-- Live demo: DEMO_URL_PENDING
+- Live demo: https://spare-room-demo.netlify.app
 - Code: https://github.com/Nebiyu-6249/spare-room
 - Release: https://github.com/Nebiyu-6249/spare-room/releases/latest
 - Video: [PLACEHOLDER: upload demo-video/spare-room-walkthrough.mp4 and paste the link]

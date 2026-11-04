@@ -7,7 +7,7 @@ about 30 seconds so stranger code runs away from your keys and wallets, and
 proves the difference by running the same harmless probe from both accounts.
 Fully offline. No AI, no telemetry, no sign-in.
 
-- **Live demo:** DEMO_URL_PENDING (replays output recorded from the real tool on a test machine)
+- **Live demo:** https://spare-room-demo.netlify.app (replays output recorded from the real tool on a test machine)
 - **Download:** [latest release](https://github.com/Nebiyu-6249/spare-room/releases/latest) (`spareroom.exe` + `SHA256SUMS.txt`)
 - **Results:** [EVALUATION.md](EVALUATION.md)
 

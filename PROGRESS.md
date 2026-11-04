@@ -206,3 +206,27 @@ Tests: 86 passing.
   "Create interview account", "Open it again") was stopped by a safety check.
   Per the user's rule it was not retried or rephrased. `/` is instead a short
   overview of the recorded results that links to Results, Privacy and Download.
+
+### Phases 5 and 6 (DONE)
+- Browser demo: https://spare-room-demo.netlify.app (Netlify site
+  `spare-room-demo`, static export of `web/`). The site inherited the team's
+  "Netlify team login" protection; it was switched off for this one site only.
+  The team default and the other sites are unchanged. Checked live at 375 px:
+  no page overflow, own CSP and no-referrer served, the only resource host is
+  the site itself, no cookies.
+- Repo: https://github.com/Nebiyu-6249/spare-room (public). Before the first
+  push, a redacted local project name was rewritten out of the unpushed local
+  history (git filter-branch). Commits cited in EVALUATION.md were unaffected.
+- Release v0.1.0: `spareroom.exe` and `SHA256SUMS.txt`
+  (a25a4868b894afd6fbc5db9abcb18f7121ce1cc40a7b1958517c0c77d33722a7);
+  re-downloaded and verified.
+- README (with limits and plain-word trick descriptions), DEVPOST.md with
+  [PLACEHOLDER] spots, and `demo-video/spare-room-walkthrough.mp4` (2:49,
+  captions burned in, plus .srt), recorded by `tools/video/record.mjs`.
+
+### Left for the user
+- Fill the [PLACEHOLDER] spots in DEVPOST.md; upload the video and paste its link.
+- Optional: time the first sign-in to the interview account; do the VS Code
+  hands-on check in that account.
+- Optional: add a LICENSE if you want others to reuse the code.
+- Decide whether to keep or remove the interview account.

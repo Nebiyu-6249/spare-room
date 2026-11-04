@@ -113,10 +113,55 @@ def verify(home: Path = None, drives: List[Path] = None, users_root: Path = None
     def extra():
         xf, xc, blocked = cross_profile_findings(users_root, home, only_profiles)
         state["blocked"] = blocked
+        state["readable"] = len(xf)
         sf = settings_findings(home)
         return xf + sf, xc + 3
 
     report = scan_roots(home, drives, mode="real",
                         account_label=account_label or os.environ.get("USERNAME", ""),
                         budget_seconds=budget_seconds, extra=extra)
-    return report, state.get("blocked", 0)
+    blocked = state.get("blocked", 0)
+    report.groups = group_findings(report, home, blocked + state.get("readable", 0), blocked)
+    return report, blocked
+
+
+def group_findings(report: ScanReport, home: Path, other_present: int, other_blocked: int) -> dict:
+    """Split verify's findings into what it means for the person reading it.
+
+    other   - known secret locations in the user's other accounts: how many
+              exist, how many are out of reach, and any that are readable
+    shared  - readable from here but outside this account (for example a .env
+              every account can read): things stranger code could take
+    own     - this account's own files; in a new spare room they hold nothing
+              of the user's, so they are information, never high
+    missing - protections finish-setup should have applied here
+    Only `other.readable` and `shared` count as things stranger code could take.
+    """
+    own_root = os.path.normcase(str(home))
+    other, shared, own, missing = [], [], [], []
+    for f in report.findings:
+        p = os.path.normcase(f.path)
+        if f.id.startswith("xprofile"):
+            other.append(f)
+        elif f.id.startswith("setting-missing"):
+            missing.append(f)
+        elif p == own_root or p.startswith(own_root + os.sep):
+            f.severity = "info"
+            own.append(f)
+        else:
+            shared.append(f)
+    return {"other": {"present": other_present, "out_of_reach": other_blocked, "readable": other},
+            "shared": shared, "own": own, "missing": missing,
+            "takeable": len(other) + len(shared)}
+
+
+def groups_to_dict(groups: dict) -> dict:
+    o = groups["other"]
+    return {
+        "takeable": groups["takeable"],
+        "other_accounts": {"present": o["present"], "out_of_reach": o["out_of_reach"],
+                           "readable": [f.to_dict() for f in o["readable"]]},
+        "readable_by_every_account": [f.to_dict() for f in groups["shared"]],
+        "this_account_own_files": [f.to_dict() for f in groups["own"]],
+        "not_applied": [f.to_dict() for f in groups["missing"]],
+    }

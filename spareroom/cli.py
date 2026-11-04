@@ -14,6 +14,7 @@ import argparse
 import json
 import os
 import sys
+import textwrap
 import time
 import webbrowser
 from pathlib import Path
@@ -22,8 +23,8 @@ from . import APP_NAME, TOOL_VERSION
 from . import accounts
 from .hardening import apply_all
 from .report import write_report
-from .scanner import scan
-from .verify import verify
+from .scanner import scan, shown_path
+from .verify import groups_to_dict, verify
 
 LIMITS = ("A separate account is weaker than a virtual machine. Malware running with "
           "administrator rights, files every user can read, and your network or VPN "
@@ -31,6 +32,11 @@ LIMITS = ("A separate account is weaker than a virtual machine. Malware running 
 
 # Indirection so tests can drive the prompts.
 _ask = input
+
+
+def _limits() -> str:
+    """The limits sentence, wrapped at word boundaries (consoles break lines mid-word)."""
+    return textwrap.fill("Limits: " + LIMITS, 100)
 
 
 def _print_summary(report) -> None:
@@ -48,7 +54,7 @@ def _print_summary(report) -> None:
           f"({counts['high']} high, {counts['medium']} medium, {counts['info']} info):")
     for f in sorted(report.findings, key=lambda x: {"high": 0, "medium": 1, "info": 2}.get(x.severity, 9)):
         print(f"  [{f.severity:<6}] {f.category:<17} {f.kind}")
-        print(f"            {f.path}")
+        print(f"            {shown_path(report, f.path)}")
 
 
 def _write_json(path, data) -> None:
@@ -100,7 +106,7 @@ def cmd_setup(args, elevate=accounts.run_elevated, exists=accounts.user_exists) 
     print("your own account: SSH keys, cloud logins, browser passwords, wallets.")
     print("Windows will ask for permission, then a PowerShell window asks for the new")
     print("account's password. The password is not shown, saved or sent anywhere.\n")
-    print("Limits: " + LIMITS + "\n")
+    print(_limits() + "\n")
 
     name = args.username
     while True:
@@ -168,9 +174,39 @@ def _admin_guard(force: bool, what: str, is_admin=accounts.current_account_is_ad
 
 
 def _print_verify(report, blocked: int) -> None:
-    _print_summary(report)
-    print(f"\n{blocked} known secret locations in other accounts were out of reach from here.")
-    print("Limits: " + LIMITS)
+    """verify's result in three labelled groups. Only the first two count as
+    things stranger code could take; this account's own files are listed apart."""
+    g = report.groups
+    print(f"{APP_NAME} {TOOL_VERSION} - checked from this account ({report.account_label})")
+    print(f"Checked {report.locations_checked} locations in {report.duration_ms} ms.\n")
+    n = g["takeable"]
+    if n:
+        print(f"{n} {'thing' if n == 1 else 'things'} stranger code could take from here.\n")
+    else:
+        print(f"Nothing found that stranger code could take from here, in the {report.locations_checked} places checked.\n")
+
+    o = g["other"]
+    if o["present"]:
+        print(f"Your other accounts: {o['out_of_reach']} of {o['present']} known secret locations out of reach")
+    else:
+        print("Your other accounts: no known secret locations found")
+    for f in o["readable"]:
+        print(f"  [high  ] readable from here: {f.path}")
+
+    print("\nReadable by every account:" + ("" if g["shared"] else " none found"))
+    for f in g["shared"]:
+        print(f"  {f.path}  ({f.kind})")
+
+    print("\nThis spare room's own files (a new account, nothing of yours):" + ("" if g["own"] else " none"))
+    for f in g["own"]:
+        print(f"  [info  ] {f.kind}")
+        print(f"           {f.path}")
+
+    if g["missing"]:
+        print("\nNot yet applied in this account (run finish-setup):")
+        for f in g["missing"]:
+            print(f"  {f.kind.replace('not applied: ', '')}")
+    print("\n" + _limits())
 
 
 def cmd_finish_setup(args, is_admin=accounts.current_account_is_admin) -> int:
@@ -203,6 +239,7 @@ def cmd_finish_setup(args, is_admin=accounts.current_account_is_admin) -> int:
         _print_verify(report, blocked)
         data["verify"] = report.to_dict()
         data["verify_blocked"] = blocked
+        data["verify_groups"] = groups_to_dict(report.groups)
     if args.json:
         _write_json(args.json, data)
     return 1 if failed else 0
@@ -219,6 +256,7 @@ def cmd_verify(args, is_admin=accounts.current_account_is_admin) -> int:
         data = report.to_dict()
         data["blocked_in_other_profiles"] = blocked
         data["only_profiles"] = only
+        data["groups"] = groups_to_dict(report.groups)
         _write_json(args.json, data)
     return 0
 

@@ -79,12 +79,25 @@ def main(argv=None) -> int:
         return 2
 
     result = run(args.trap_id, args.trigger, paths, args.account)
+    label = lambda p: p
+    where = None
+    if args.fake_laptop or args.demo:
+        # Show paths relative to the fake laptop so they fit on one line; the
+        # JSON written with --out keeps the full paths.
+        from .scanner import demo_roots, fake_laptop_label
+        from .traps import bundled_fake_laptop
+        base = Path(args.fake_laptop) if args.fake_laptop else bundled_fake_laptop()
+        home, _ = demo_roots(base)
+        label = lambda p: fake_laptop_label(p, home, base)
+        where = str(base) if args.fake_laptop else "bundled with the tool"
     print(f"Probe {result['trap_id']} ({result['trigger']}) as {result['account_label'] or '(unknown)'}:")
+    if where:
+        print(f"  fake laptop: {where}")
     print(f"  visible: {len(result['visible'])}   blocked: {len(result['blocked'])}")
     for v in result["visible"]:
-        print(f"    visible  {v}")
+        print(f"    visible  {label(v)}")
     for b in result["blocked"]:
-        print(f"    blocked  {b}")
+        print(f"    blocked  {label(b)}")
     if args.out:
         Path(args.out).write_text(json.dumps(result, indent=2), encoding="utf-8")
         print(f"  wrote {args.out}")

@@ -72,16 +72,23 @@ export default function Results() {
       <SectionTitle>Checked from inside the spare room</SectionTitle>
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
-          <BigNumber value={`${v.normal_profile_readable} of ${v.normal_profile_secret_locations}`}
-            label="known secret files in your account's folder were readable. Windows denied every one." tone="ok" />
+          <p className="mb-3 text-[15px] font-medium text-muted">Your other accounts</p>
+          <BigNumber
+            value={`${v.normal_profile_secret_locations - v.normal_profile_readable} of ${v.normal_profile_secret_locations}`}
+            label="known secret locations out of reach. Windows denied access to every one." tone="ok" />
         </Card>
         <Card>
+          <p className="mb-3 text-[15px] font-medium text-muted">Readable by every account</p>
           <BigNumber value={v.readable_env_outside_profiles.length}
-            label={<>.env file outside any account folder was still readable:{" "}
-              {v.readable_env_outside_profiles.map((p) => <Path key={p}>{p}</Path>)}. Every account can read it, so a
-              separate account does not protect it.</>} tone="high" />
+            label={<>.env file outside any account folder:{" "}
+              {v.readable_env_outside_profiles.map((p) => <Path key={p}>{p}</Path>)}. A separate account does not
+              protect it.</>} tone="high" />
         </Card>
       </div>
+      <p className="mt-4 max-w-3xl text-[15px] text-muted">
+        The spare room&apos;s own files (a new account&apos;s browser and settings files, nothing of yours) are listed
+        separately as information and are not counted as things stranger code could take.
+      </p>
 
       <SectionTitle>Time to set up the spare room (Windows 11 Home)</SectionTitle>
       <div className="max-w-2xl rounded-md border border-line bg-card">

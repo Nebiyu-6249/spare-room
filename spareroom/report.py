@@ -10,6 +10,7 @@ from pathlib import Path
 
 from . import APP_NAME
 from .models import ScanReport
+from .scanner import shown_path
 
 CATEGORY_LABELS = {
     "ssh": "SSH keys",
@@ -116,7 +117,7 @@ def render_html(report: ScanReport) -> str:
             rows.append(
                 '<div class="item">'
                 f'{_sev_span(f.severity)}<span class="kind">{html.escape(f.kind)}</span>'
-                f'<code class="p">{html.escape(f.path)}</code>'
+                f'<code class="p">{html.escape(shown_path(report, f.path))}</code>'
                 f'<div class="why">{html.escape(f.reason)}</div>'
                 f'<div class="fix"><b>Fix:</b> {html.escape(f.fix)}</div>'
                 f'{src}'

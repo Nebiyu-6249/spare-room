@@ -37,15 +37,16 @@ public static class DemoConsole {
 }
 '@
 
-# Look: light background, ink text, large monospace font (24 px before Windows scaling).
+# Look: light background, ink text, monospace at 20 px (before Windows scaling).
+# 142 columns fit the longest fake-laptop path on one line.
 $raw = $Host.UI.RawUI
 $raw.WindowTitle = $title
 $raw.BackgroundColor = 'White'
 $raw.ForegroundColor = 'Black'
-[void][DemoConsole]::SetFont('Consolas', 24)
+[void][DemoConsole]::SetFont('Consolas', 20)
 Start-Sleep -Milliseconds 300
 $max = $raw.MaxPhysicalWindowSize
-$cols = [Math]::Min(116, $max.Width)
+$cols = [Math]::Min(142, $max.Width)
 $rows = [Math]::Min(32, $max.Height)
 try {
     $raw.BufferSize = New-Object Management.Automation.Host.Size([Math]::Max($cols, $raw.BufferSize.Width), 3000)

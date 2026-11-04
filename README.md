@@ -20,6 +20,7 @@ Fully offline. No AI, no telemetry, no sign-in.
 | `setup` | yes (UAC) | Creates a standard (non-admin) local account. You type its password in a Windows PowerShell window; it never passes through the tool. |
 | `finish-setup` | no | Run once inside the new account: VS Code Workspace Trust on, automatic tasks off, npm `ignore-scripts`, Claude Code hooks off. Then runs `verify`. |
 | `verify [--only-profile NAME]` | no | Run inside the new account: lists anything still reachable from there, such as a `.env` every user can read. |
+| `doctor [--json PATH]` | no | Run inside the new account: are node, npm, python, git and code available there? For each missing one, how to install it for all users. Read-only. |
 | `remove-account` | yes (UAC) | Removes the account only if Spare Room created it, never an administrator. Explains how to delete its folder; does not delete it. |
 
 Categories checked: SSH keys, cloud credentials (AWS, Google Cloud, Azure),

@@ -230,3 +230,14 @@ Tests: 86 passing.
   hands-on check in that account.
 - Optional: add a LICENSE if you want others to reuse the code.
 - Decide whether to keep or remove the interview account.
+
+### Release v0.1.1 (2026-11-04)
+- Adds `spareroom doctor` (run inside the spare room; lists node, npm, python,
+  git and code, with all-users install advice for anything missing) and the
+  four corrected fix messages. Exe SHA-256
+  4dd6adb47175c721343b126fd44a4ef315791d6c8b16b455389603d069a809fb,
+  re-downloaded and verified. The site's Download page shows it.
+- Recorded in the spare room on this machine: Node.js, npm, Git available
+  (all users); Python and VS Code missing (installed for the normal account only).
+- The copy in C:\Program Files\Spare Room is still 0.1.0 (replacing it needs
+  admin); C:\SpareRoomShared\spareroom.exe is 0.1.1.

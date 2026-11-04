@@ -24,7 +24,9 @@ def demo_roots(base: Path) -> Tuple[Path, List[Path]]:
     """Home dir and drive roots inside the bundled fake laptop."""
     home = base / "C" / "Users" / "testdev"
     drives = [base / "C", base / "D"]
-    return home, [d for d in drives if d.exists()]
+    # _exists, not Path.exists: on 3.12 the latter raises on access denied,
+    # which is exactly what the interview account gets for a copy in another profile.
+    return home, [d for d in drives if _exists(d)]
 
 
 def real_roots() -> Tuple[Path, List[Path]]:

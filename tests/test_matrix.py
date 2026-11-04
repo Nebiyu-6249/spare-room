@@ -25,6 +25,24 @@ def test_probe_fake_laptop_option(tmp_path, capsys):
     assert len(r["visible"]) == len(DEMO_TARGETS) and r["blocked"] == []
 
 
+def test_probe_records_blocked_when_fake_laptop_is_denied(tmp_path, monkeypatch):
+    # From the interview account, every path in the copy (including its C and
+    # D folders) is access denied. The probe must record that, not crash.
+    fl = _copy(tmp_path)
+    real_stat = probe.os.stat
+
+    def stat(p, *a, **k):
+        if str(p).startswith(str(fl)):
+            raise PermissionError(13, "Access is denied")
+        return real_stat(p, *a, **k)
+
+    monkeypatch.setattr(probe.os, "stat", stat)
+    out = tmp_path / "interview.json"
+    assert probe.main(["--fake-laptop", str(fl), "--account", "interview", "--out", str(out)]) == 0
+    r = json.loads(out.read_text())
+    assert r["visible"] == [] and len(r["blocked"]) == len(DEMO_TARGETS)
+
+
 def test_matrix_and_isolation_check(tmp_path):
     fl = _copy(tmp_path)
     paths = [str(p) for p in demo_targets(fl)]

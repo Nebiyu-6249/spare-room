@@ -44,4 +44,28 @@ End to end on the bundled fake laptop.
   as text; 12 are listed plus Ronin from the earlier JS table. Flag to confirm
   the missing ID against the live page before the final coverage table (phase 4).
 
-## Next: Phase 2 - real scan on Windows for every category.
+## Phase 2 - real scan on Windows for every category (DONE)
+
+`spareroom scan` (real mode) runs on the live machine, read-only, no admin.
+
+### What works
+- `real_roots()` resolves the real home (`%USERPROFILE%`) and every fixed-drive
+  letter root.
+- All ten categories are checked against real locations; measured on the dev box
+  at 8.4 s / 158 locations (ssh, cloud, wallet_extension, desktop_wallet came
+  back empty here, which is a real result, not a gap).
+- The `.env` hunt now has a wall-clock budget (`budget_seconds`, default 50) and
+  prunes large system trees (Windows, Program Files, ProgramData, WinSxS, ...)
+  on top of node_modules. If a drive runs out of time it is reported as an
+  `env_file` info finding ("env scan time-limited"), so the scan never silently
+  under-reports and never runs away past 60 s.
+
+### Tests (now 18 passing)
+- `test_real_mode.py`: real_roots shape; live scan is bounded (<60 s) and every
+  finding is well-formed; the env walk stops at a past deadline and records it;
+  the env walk finds a project `.env` and skips `node_modules` - both
+  deterministic on temp trees.
+
+## Next: Phase 3 - setup, finish-setup, verify, remove-account.
+   Needs admin/UAC and a standard account; test in a VM or spare machine, never
+   the main one. Ask before running anything that needs admin on a real machine.

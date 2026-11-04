@@ -52,6 +52,7 @@ public static class DemoWin {
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
     [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int cx, int cy, uint flags);
     [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr h, int cmd);
+    [DllImport("user32.dll")] public static extern bool IsWindow(IntPtr h);
     public static IntPtr Handle(string part) {
         IntPtr found = IntPtr.Zero;
         EnumWindows(delegate (IntPtr h, IntPtr l) {
@@ -77,7 +78,7 @@ public static class DemoWin {
 '@
 [void][DemoWin]::SetProcessDPIAware()   # all coordinates in physical pixels, as ffmpeg sees them
 
-function Fail([string]$msg) { Write-Host ''; Write-Host "Stopped: $msg" -ForegroundColor Red; Cleanup-VsCode; exit 1 }
+function Fail([string]$msg) { Write-Host ''; Write-Host "Stopped: $msg" -ForegroundColor Red; Stop-AllRecording; Cleanup-VsCode; exit 1 }
 function Signal([string]$name) { New-Item -ItemType File -Force -Path (Join-Path $Signals $name) | Out-Null }
 function WaitFor([string]$name, [int]$seconds) {
     $deadline = (Get-Date).AddSeconds($seconds)
@@ -103,6 +104,24 @@ function Note([string]$what) {
     $events | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $Raw 'events.json') -Encoding UTF8
 }
 $clips = New-Object System.Collections.ArrayList
+$Active = New-Object System.Collections.ArrayList   # ffmpeg processes recording right now
+
+# Stop every recording this script started. Runs on any exit, Ctrl+C included,
+# so ffmpeg never keeps recording the screen after the script has gone.
+function Stop-AllRecording {
+    foreach ($p in @($Active)) {
+        try { if (-not $p.HasExited) { $p.StandardInput.Write('q'); $p.StandardInput.Close(); if (-not $p.WaitForExit(5000)) { $p.Kill() } } } catch { try { $p.Kill() } catch { } }
+    }
+    $Active.Clear()
+}
+# A run that was stopped earlier may have left ffmpeg recording; stop it first.
+function Stop-LeftoverRecording {
+    Get-CimInstance Win32_Process -Filter "Name = 'ffmpeg.exe'" -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -like '*gdigrab*' -and $_.CommandLine -like "*$Raw*" } |
+        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+    Start-Sleep -Milliseconds 500
+}
+
 function Start-Clip([string]$name, [string]$windowTitle, [int[]]$rect = $null) {
     $out = Join-Path $Raw "$name.mkv"
     if ($rect) {
@@ -117,6 +136,7 @@ function Start-Clip([string]$name, [string]$windowTitle, [int[]]$rect = $null) {
     $psi.UseShellExecute = $false; $psi.RedirectStandardInput = $true; $psi.CreateNoWindow = $true
     $psi.EnvironmentVariables['__COMPAT_LAYER'] = 'HighDpiAware'   # Windows is scaled above 100% here
     $p = [System.Diagnostics.Process]::Start($psi)
+    [void]$Active.Add($p)
     $clip = [ordered]@{ name = $name; window = $windowTitle; rect = $rect; file = $out; started = (Get-Date).ToString('o'); process = $p }
     Start-Sleep -Milliseconds 1500
     if ($p.HasExited) { Fail "ffmpeg could not start recording $name." }
@@ -126,13 +146,17 @@ function Stop-Clip($clip) {
     $clip.stopped = (Get-Date).ToString('o')
     try { $clip.process.StandardInput.Write('q'); $clip.process.StandardInput.Close() } catch { }
     if (-not $clip.process.WaitForExit(20000)) { $clip.process.Kill() }
+    $Active.Remove($clip.process)
     $c = [ordered]@{}; foreach ($k in $clip.Keys) { if ($k -ne 'process') { $c[$k] = $clip[$k] } }
     [void]$clips.Add($c)
     $clips | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $Raw 'clips.json') -Encoding UTF8
 }
 
-# A prompt box below the recorded area. Blocks until Continue is pressed.
-function Show-Prompt([string]$heading, [string]$text, [int]$autoCloseSeconds = 0) {
+# A prompt box below the recorded area. Blocks until Continue (or Enter) or
+# Stop recording is pressed. Returns 'continue', 'stop', or 'closed' (the
+# watched window went away). With -Watch, it checks five times a second that
+# the window being recorded still exists, so a closed window is not filmed past.
+function Show-Prompt([string]$heading, [string]$text, [int]$autoCloseSeconds = 0, [IntPtr]$Watch = [IntPtr]::Zero) {
     Note "prompt: $heading"
     $f = New-Object Windows.Forms.Form
     $f.Text = 'Spare Room recording'; $f.TopMost = $true; $f.FormBorderStyle = 'FixedDialog'
@@ -146,13 +170,23 @@ function Show-Prompt([string]$heading, [string]$text, [int]$autoCloseSeconds = 0
     $b = New-Object Windows.Forms.Button; $b.Text = 'Continue'; $b.Font = New-Object Drawing.Font('Segoe UI', 13)
     $b.Size = New-Object Drawing.Size(240, 80); $b.Location = New-Object Drawing.Point(($VsRect[2] - 290), 90)
     $b.DialogResult = [Windows.Forms.DialogResult]::OK
-    $f.Controls.AddRange(@($h, $l, $b)); $f.AcceptButton = $b
+    $s = New-Object Windows.Forms.Button; $s.Text = 'Stop recording'; $s.Font = New-Object Drawing.Font('Segoe UI', 11)
+    $s.Size = New-Object Drawing.Size(240, 56); $s.Location = New-Object Drawing.Point(($VsRect[2] - 290), 182)
+    $s.DialogResult = [Windows.Forms.DialogResult]::Abort
+    $f.Controls.AddRange(@($h, $l, $b, $s)); $f.AcceptButton = $b
+    $state = @{ closed = $false }
     if ($autoCloseSeconds -gt 0) {
         $t = New-Object Windows.Forms.Timer; $t.Interval = $autoCloseSeconds * 1000
         $t.Add_Tick({ $f.Close() }); $t.Start()
     }
-    [void]$f.ShowDialog()
-    Note "continue: $heading"
+    if ($Watch -ne [IntPtr]::Zero) {
+        $w = New-Object Windows.Forms.Timer; $w.Interval = 200
+        $w.Add_Tick({ if (-not [DemoWin]::IsWindow($Watch)) { $state.closed = $true; $f.Close() } }.GetNewClosure()); $w.Start()
+    }
+    $r = $f.ShowDialog()
+    $result = if ($state.closed) { 'closed' } elseif ($r -eq [Windows.Forms.DialogResult]::Abort) { 'stop' } else { 'continue' }
+    Note "$result : $heading"
+    return $result
 }
 
 function Network-Up { @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object Status -eq 'Up').Count -gt 0 }
@@ -187,11 +221,14 @@ function Start-VsCode {
         'terminal.integrated.fontSize' = 16
         'telemetry.telemetryLevel' = 'off'
         'update.mode' = 'none'
+        'git.enabled' = $false                                     # no "git repository found" notification
+        'git.openRepositoryInParentFolders' = 'never'
     } | ConvertTo-Json | Set-Content -LiteralPath "$VsData\data\User\settings.json" -Encoding UTF8
     Start-Process -FilePath $Code -ArgumentList @("--user-data-dir=`"$VsData\data`"", "--extensions-dir=`"$VsData\ext`"",
-        '--new-window', "`"$Trap`"")
+        '--new-window', "`"$Trap`"") -RedirectStandardOutput "$VsData\code-out.log" -RedirectStandardError "$VsData\code-err.log"
     $h = WaitHandle 'vscode_task' 60
     if ($h -eq [IntPtr]::Zero) { Fail 'VS Code did not open traps\vscode_task.' }
+    $script:VsHandle = $h
     Start-Sleep -Seconds 2
     [DemoWin]::Place($h, $VsRect[0], $VsRect[1], $VsRect[2], $VsRect[3])
     Start-Sleep -Seconds 2
@@ -222,6 +259,7 @@ if (-not $DryRun) {
 }
 
 New-Item -ItemType Directory -Force -Path $Work, $Signals, $Raw | Out-Null
+Stop-LeftoverRecording
 Get-ChildItem $Signals -File | Remove-Item -Force
 Get-ChildItem $Work -Filter 'timeline-*.json' -File | Remove-Item -Force
 Get-ChildItem $Raw -File -ErrorAction SilentlyContinue | Remove-Item -Force
@@ -229,14 +267,20 @@ Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'demo_window.ps1') -Destination 
 [ordered]@{ exe = $Exe; work = $Work; signals = $Signals; me = $Me; fakeLaptop = $FakeLaptop } |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Work 'config.json') -Encoding UTF8
 
+try {   # every path out of here, Ctrl+C included, ends in the finally block below
+
 if ($DryRun) {
     $vsRec = Start-VsCode
     $clip = Start-Clip 'dry-vscode' $null $vsRec
-    Start-Sleep -Seconds 4
+    # Close VS Code from outside after 3 s: the prompt must notice and return 'closed'.
+    $job = Start-Job { Start-Sleep -Seconds 3
+        Get-CimInstance Win32_Process -Filter "Name = 'Code.exe'" | Where-Object { $_.CommandLine -like '*spareroom-demo-vscode*' } |
+            ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } }
+    $r = Show-Prompt 'Prompt test' 'VS Code will be closed in 3 seconds; this box should close at once when it does.' 15 -Watch $script:VsHandle
     Stop-Clip $clip
+    Remove-Job $job -Force
     Cleanup-VsCode
-    Show-Prompt 'Prompt test' 'This box closes by itself in 4 seconds.' 4
-    Write-Host "Dry run saved to $Raw\dry-vscode.mkv"
+    Write-Host "Dry run: prompt returned '$r'. Saved to $Raw\dry-vscode.mkv"
     exit 0
 }
 
@@ -262,20 +306,25 @@ Write-Host 'A. VS Code...'
 $vsRec = Start-VsCode
 $clipV = Start-Clip 'vscode' $null $vsRec
 Note 'vscode recording'
-Show-Prompt 'Your turn: VS Code' ("VS Code asks whether you trust the authors of this folder. Click 'Yes, I trust the authors'. " +
-    "If it then asks about automatic tasks, click Allow. Wait until the terminal at the bottom of VS Code shows " +
-    "'visible: 13' and the list of paths, then click Continue here.")
+$r = Show-Prompt 'Your turn: VS Code' ("1. In VS Code, click 'Yes, I trust the authors'.`n" +
+    "2. A message at the bottom right asks whether to allow automatic tasks. Click Allow.`n" +
+    "3. A terminal opens at the bottom of VS Code. When it shows 'visible: 13' and the list, click Continue here.`n" +
+    "If nothing happens within a minute, click Stop recording.") -Watch $script:VsHandle
+if ($r -eq 'closed') { Fail 'VS Code was closed, so recording stopped at once. Run the script again.' }
+if ($r -eq 'stop') { Fail 'Stopped at your request.' }
 Start-Sleep -Seconds 2
 Stop-Clip $clipV
 Cleanup-VsCode
 
 # --- B. Offline: the demo scan with Wi-Fi off ----------------------------------
 Write-Host 'B. Offline scan...'
-Show-Prompt 'Your turn: turn Wi-Fi off' ("Recording is paused. Turn Wi-Fi off now (click the network icon on the taskbar, then Wi-Fi). " +
+$r = Show-Prompt 'Your turn: turn Wi-Fi off' ("Recording is paused. Turn Wi-Fi off now (click the network icon on the taskbar, then Wi-Fi). " +
     "If a network cable is plugged in, unplug it. Then click Continue.")
+if ($r -eq 'stop') { Fail 'Stopped at your request.' }
 if (Network-Up) {
-    Show-Prompt 'A network still looks connected' ("Windows still reports a connected network adapter. Turn it off, then click Continue " +
+    $r = Show-Prompt 'A network still looks connected' ("Windows still reports a connected network adapter. Turn it off, then click Continue " +
         "(the recording will go ahead either way).")
+    if ($r -eq 'stop') { Fail 'Stopped at your request.' }
 }
 Note ("network up after prompt: " + (Network-Up))
 Open-Console 'offline' $null
@@ -287,7 +336,7 @@ if (-not (WaitFor 'offline-done' 120)) { Fail 'The offline scan did not finish.'
 Start-Sleep -Milliseconds 500
 Stop-Clip $clipA
 Signal 'offline-close'
-Show-Prompt 'Your turn: turn Wi-Fi back on' 'Recording is paused. Turn Wi-Fi back on (and plug the cable back in, if you unplugged one). Then click Continue.'
+[void](Show-Prompt 'Your turn: turn Wi-Fi back on' 'Recording is paused. Turn Wi-Fi back on (and plug the cable back in, if you unplugged one). Then click Continue.')
 
 # --- C. The spare room ---------------------------------------------------------
 Write-Host 'C. The spare room...'
@@ -305,3 +354,9 @@ Signal 'spare-close'
 Copy-Item -LiteralPath (Join-Path $Work 'timeline-offline.json'), (Join-Path $Work 'timeline-spare.json') -Destination $Raw -Force
 Write-Host ''
 Write-Host "Done. Raw clips and timings are in $Raw. Tell Claude to edit them." -ForegroundColor Green
+
+} finally {
+    # Never leave ffmpeg recording, or the demo VS Code open, whatever happened above.
+    Stop-AllRecording
+    Cleanup-VsCode
+}

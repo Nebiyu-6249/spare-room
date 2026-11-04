@@ -1,0 +1,260 @@
+{
+  "tool_version": "0.1.0",
+  "mode": "demo",
+  "account_label": "demo",
+  "started_at": "2026-11-04T19:00:41+04:00",
+  "duration_ms": 47,
+  "locations_checked": 159,
+  "findings": [
+    {
+      "id": "ssh-id-rsa",
+      "category": "ssh",
+      "path": "C:\\Users\\testdev\\.ssh\\id_rsa",
+      "kind": "SSH private key (PEM)",
+      "severity": "high",
+      "reason": "An SSH private key signs into servers and Git hosts as you. The s1ngularity payload grabbed id_rsa directly.",
+      "fix": "Move this key to the interview account's reach only, or use a hardware/agent-backed key. Passphrase-protect it.",
+      "source_ref": "https://blog.gitguardian.com/the-nx-s1ngularity-attack-inside-the-credential-leak/"
+    },
+    {
+      "id": "ssh-config",
+      "category": "ssh",
+      "path": "C:\\Users\\testdev\\.ssh\\config",
+      "kind": "SSH config",
+      "severity": "info",
+      "reason": "Your SSH config lists the hosts and key files you connect to, a map for an attacker.",
+      "fix": "No action needed, but note it reveals your other keys and hosts.",
+      "source_ref": "https://blog.gitguardian.com/the-nx-s1ngularity-attack-inside-the-credential-leak/"
+    },
+    {
+      "id": "aws-credentials",
+      "category": "cloud",
+      "path": "C:\\Users\\testdev\\.aws\\credentials",
+      "kind": "AWS credentials",
+      "severity": "high",
+      "reason": "This file holds long-lived AWS access keys. Shai-Hulud read ~/.aws/credentials to pivot into cloud accounts.",
+      "fix": "Prefer short-lived SSO sessions; keep this file out of the interview account.",
+      "source_ref": "https://attack.mitre.org/software/S9008/"
+    },
+    {
+      "id": "aws-config",
+      "category": "cloud",
+      "path": "C:\\Users\\testdev\\.aws\\config",
+      "kind": "AWS config",
+      "severity": "medium",
+      "reason": "The AWS config names your profiles, regions and SSO start URLs.",
+      "fix": "Lower risk than credentials, but still account structure an attacker can use.",
+      "source_ref": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html"
+    },
+    {
+      "id": "gcloud-adc",
+      "category": "cloud",
+      "path": "C:\\Users\\testdev\\AppData\\Roaming\\gcloud\\application_default_credentials.json",
+      "kind": "GCP application-default credentials",
+      "severity": "high",
+      "reason": "This JSON is a usable Google Cloud credential. Shai-Hulud collected application_default_credentials.json.",
+      "fix": "Run 'gcloud auth application-default revoke' when not in use; keep it out of the interview account.",
+      "source_ref": "https://attack.mitre.org/software/S9008/"
+    },
+    {
+      "id": "azure-profile",
+      "category": "cloud",
+      "path": "C:\\Users\\testdev\\.azure\\azureProfile.json",
+      "kind": "Azure CLI profile",
+      "severity": "medium",
+      "reason": "The Azure CLI stores your subscriptions and signed-in identity here; its token cache sits beside it.",
+      "fix": "Sign out of unused subscriptions; keep the .azure folder out of the interview account.",
+      "source_ref": "https://attack.mitre.org/software/S9008/"
+    },
+    {
+      "id": "npmrc",
+      "category": "token",
+      "path": "C:\\Users\\testdev\\.npmrc",
+      "kind": "npm auth token present",
+      "severity": "high",
+      "reason": "A registry auth token in .npmrc lets code publish packages as you. Shai-Hulud and s1ngularity both read ~/.npmrc.",
+      "fix": "Use a short-lived or granular token; set ignore-scripts; keep .npmrc out of the interview account.",
+      "source_ref": "https://attack.mitre.org/software/S9008/"
+    },
+    {
+      "id": "gh-hosts",
+      "category": "token",
+      "path": "C:\\Users\\testdev\\AppData\\Roaming\\GitHub CLI\\hosts.yml",
+      "kind": "GitHub CLI token",
+      "severity": "high",
+      "reason": "The GitHub CLI stores your OAuth token in hosts.yml, full access to your repos.",
+      "fix": "Keep the GitHub CLI signed in only in the interview account, or use a fine-grained token there.",
+      "source_ref": "https://cli.github.com/manual/gh_help_environment"
+    },
+    {
+      "id": "gitconfig",
+      "category": "token",
+      "path": "C:\\Users\\testdev\\.gitconfig",
+      "kind": "Git config",
+      "severity": "medium",
+      "reason": "Your .gitconfig can embed credential-helper tokens or URLs with secrets. s1ngularity collected .gitconfig.",
+      "fix": "Check for inline tokens; prefer an OS credential manager.",
+      "source_ref": "https://blog.gitguardian.com/the-nx-s1ngularity-attack-inside-the-credential-leak/"
+    },
+    {
+      "id": "solana-id",
+      "category": "desktop_wallet",
+      "path": "C:\\Users\\testdev\\.config\\solana\\id.json",
+      "kind": "Solana keypair",
+      "severity": "high",
+      "reason": "id.json is an unencrypted Solana private key. Lazarus npm packages extracted ~/.config/solana/id.json.",
+      "fix": "Do not keep funded keypairs on a dev box; move this out of the interview account.",
+      "source_ref": "https://socket.dev/blog/lazarus-strikes-npm-again-with-a-new-wave-of-malicious-packages"
+    },
+    {
+      "id": "exodus-wallet",
+      "category": "desktop_wallet",
+      "path": "C:\\Users\\testdev\\AppData\\Roaming\\Exodus\\exodus.wallet",
+      "kind": "Exodus wallet data",
+      "severity": "high",
+      "reason": "Exodus stores its wallet here; the same campaigns target exodus.wallet.",
+      "fix": "Keep crypto wallets off the machine where you run stranger code.",
+      "source_ref": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    {
+      "id": "electrum-wallets",
+      "category": "desktop_wallet",
+      "path": "C:\\Users\\testdev\\AppData\\Roaming\\Electrum\\wallets",
+      "kind": "Electrum wallet folder",
+      "severity": "medium",
+      "reason": "Electrum keeps wallet files here; s1ngularity's wallet hunt listed Electrum.",
+      "fix": "Encrypt wallets and keep them off this machine.",
+      "source_ref": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    {
+      "id": "claude-creds-0",
+      "category": "ai_tool",
+      "path": "C:\\Users\\testdev\\.claude\\.credentials.json",
+      "kind": "Claude Code stored credentials",
+      "severity": "high",
+      "reason": "s1ngularity enumerated AI CLI config and tokens (Claude, Gemini, Q). A stored session token here acts as you.",
+      "fix": "Sign the AI CLIs in inside the interview account instead; turn off startup hooks there.",
+      "source_ref": "https://blog.gitguardian.com/the-nx-s1ngularity-attack-inside-the-credential-leak/"
+    },
+    {
+      "id": "claude-creds-1",
+      "category": "ai_tool",
+      "path": "C:\\Users\\testdev\\.claude.json",
+      "kind": "Claude Code account config",
+      "severity": "medium",
+      "reason": "s1ngularity enumerated AI CLI config and tokens (Claude, Gemini, Q). A stored session token here acts as you.",
+      "fix": "Sign the AI CLIs in inside the interview account instead; turn off startup hooks there.",
+      "source_ref": "https://blog.gitguardian.com/the-nx-s1ngularity-attack-inside-the-credential-leak/"
+    },
+    {
+      "id": "claude-creds-2",
+      "category": "ai_tool",
+      "path": "C:\\Users\\testdev\\.claude\\settings.json",
+      "kind": "Claude Code settings (may define startup hooks)",
+      "severity": "info",
+      "reason": "s1ngularity enumerated AI CLI config and tokens (Claude, Gemini, Q). A stored session token here acts as you.",
+      "fix": "Sign the AI CLIs in inside the interview account instead; turn off startup hooks there.",
+      "source_ref": "https://blog.gitguardian.com/the-nx-s1ngularity-attack-inside-the-credential-leak/"
+    },
+    {
+      "id": "gemini-settings",
+      "category": "ai_tool",
+      "path": "C:\\Users\\testdev\\.gemini\\settings.json",
+      "kind": "Gemini CLI settings",
+      "severity": "medium",
+      "reason": "s1ngularity targeted the Gemini CLI's config alongside Claude and Q.",
+      "fix": "Keep the Gemini CLI signed in only in the interview account.",
+      "source_ref": "https://blog.gitguardian.com/the-nx-s1ngularity-attack-inside-the-credential-leak/"
+    },
+    {
+      "id": "ps-history",
+      "category": "shell_history",
+      "path": "C:\\Users\\testdev\\AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt",
+      "kind": "PowerShell history",
+      "severity": "medium",
+      "reason": "PSReadLine saves every command across sessions. Secrets typed on a command line linger here (MITRE T1552.003).",
+      "fix": "Clear it, and avoid passing secrets as command-line arguments.",
+      "source_ref": "https://attack.mitre.org/techniques/T1552/003/"
+    },
+    {
+      "id": "vscode-user-settings",
+      "category": "editor_setting",
+      "path": "C:\\Users\\testdev\\AppData\\Roaming\\Code\\User\\settings.json",
+      "kind": "VS Code auto-run enabled",
+      "severity": "high",
+      "reason": "Opening any folder can run its .vscode/tasks.json without asking: Workspace Trust is disabled, automatic tasks are set to run.",
+      "fix": "Turn Workspace Trust on and set task.allowAutomaticTasks to off.",
+      "source_ref": "https://code.visualstudio.com/docs/debugtest/tasks"
+    },
+    {
+      "id": "browser-chrome-local_state",
+      "category": "browser_store",
+      "path": "C:\\Users\\testdev\\AppData\\Local\\Google\\Chrome\\User Data\\Local State",
+      "kind": "Chrome: browser master key",
+      "severity": "medium",
+      "reason": "Local State holds the key that decrypts the saved-password DB.",
+      "fix": "Keep browsers signed out in the interview account; do not sync profiles there.",
+      "source_ref": "https://attack.mitre.org/techniques/T1555/003/"
+    },
+    {
+      "id": "browser-chrome-default-login_data",
+      "category": "browser_store",
+      "path": "C:\\Users\\testdev\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Login Data",
+      "kind": "Chrome: saved browser passwords",
+      "severity": "high",
+      "reason": "Chromium stores site logins in Login Data (MITRE T1555.003). Stranger code can copy the DB and the key.",
+      "fix": "Keep browsers signed out in the interview account; do not sync profiles there.",
+      "source_ref": "https://attack.mitre.org/techniques/T1555/003/"
+    },
+    {
+      "id": "browser-chrome-default-web_data",
+      "category": "browser_store",
+      "path": "C:\\Users\\testdev\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Web Data",
+      "kind": "Chrome: saved autofill and cards",
+      "severity": "medium",
+      "reason": "Web Data holds autofill entries and saved payment cards.",
+      "fix": "Keep browsers signed out in the interview account; do not sync profiles there.",
+      "source_ref": "https://attack.mitre.org/techniques/T1555/003/"
+    },
+    {
+      "id": "wallet-chrome-default-nkbihfbeogaeaoehlefnkodbefgpgknn",
+      "category": "wallet_extension",
+      "path": "C:\\Users\\testdev\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Local Extension Settings\\nkbihfbeogaeaoehlefnkodbefgpgknn",
+      "kind": "MetaMask wallet (Chrome)",
+      "severity": "high",
+      "reason": "MetaMask's browser-extension storage is present. BeaverTail enumerates these wallet extension IDs.",
+      "fix": "Do not install wallet extensions in the account where you run stranger code.",
+      "source_ref": "https://unit42.paloaltonetworks.com/north-korean-threat-actors-lure-tech-job-seekers-as-fake-recruiters/"
+    },
+    {
+      "id": "wallet-chrome-default-bfnaelmomeimhlpmgjnjophhpkkoljpa",
+      "category": "wallet_extension",
+      "path": "C:\\Users\\testdev\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Local Extension Settings\\bfnaelmomeimhlpmgjnjophhpkkoljpa",
+      "kind": "Phantom wallet (Chrome)",
+      "severity": "high",
+      "reason": "Phantom's browser-extension storage is present. BeaverTail enumerates these wallet extension IDs.",
+      "fix": "Do not install wallet extensions in the account where you run stranger code.",
+      "source_ref": "https://unit42.paloaltonetworks.com/north-korean-threat-actors-lure-tech-job-seekers-as-fake-recruiters/"
+    },
+    {
+      "id": "env-0",
+      "category": "env_file",
+      "path": "C:\\Users\\testdev\\projects\\demo-app\\.env",
+      "kind": "environment file",
+      "severity": "high",
+      "reason": "A .env usually holds API keys and connection strings. InvisibleFerret collects .env files across all drives, skipping node_modules.",
+      "fix": "Keep project .env files out of the interview account, or load secrets from a vault.",
+      "source_ref": "https://unit42.paloaltonetworks.com/north-korean-threat-actors-lure-tech-job-seekers-as-fake-recruiters/"
+    },
+    {
+      "id": "env-1",
+      "category": "env_file",
+      "path": "D:\\work\\client-repo\\.env",
+      "kind": "environment file",
+      "severity": "high",
+      "reason": "A .env usually holds API keys and connection strings. InvisibleFerret collects .env files across all drives, skipping node_modules.",
+      "fix": "Keep project .env files out of the interview account, or load secrets from a vault.",
+      "source_ref": "https://unit42.paloaltonetworks.com/north-korean-threat-actors-lure-tech-job-seekers-as-fake-recruiters/"
+    }
+  ]
+}

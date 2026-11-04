@@ -1,0 +1,326 @@
+[
+  {
+    "attacker_source": {
+      "name": "Unit 42: Contagious Interview (BeaverTail/InvisibleFerret), 2024",
+      "url": "https://unit42.paloaltonetworks.com/north-korean-threat-actors-lure-tech-job-seekers-as-fake-recruiters/"
+    },
+    "target": "Wallet browser extensions by ID (MetaMask, Phantom, Coinbase Wallet and others; 12 of the 13 IDs the report names were readable in its text)",
+    "check_id": "wallet_extension",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "Unit 42: Contagious Interview (BeaverTail/InvisibleFerret), 2024",
+      "url": "https://unit42.paloaltonetworks.com/north-korean-threat-actors-lure-tech-job-seekers-as-fake-recruiters/"
+    },
+    "target": ".env files on all drives, skipping node_modules",
+    "check_id": "env_scan",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "Unit 42: Contagious Interview (BeaverTail/InvisibleFerret), 2023",
+      "url": "https://unit42.paloaltonetworks.com/two-campaigns-by-north-korea-bad-actors-target-job-hunters/"
+    },
+    "target": "Solana keypair ~/.config/solana/id.json",
+    "check_id": "solana-id",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "Unit 42: Contagious Interview (BeaverTail/InvisibleFerret), 2023",
+      "url": "https://unit42.paloaltonetworks.com/two-campaigns-by-north-korea-bad-actors-target-job-hunters/"
+    },
+    "target": "Saved browser logins",
+    "check_id": "browser_store",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "Unit 42: Contagious Interview (BeaverTail/InvisibleFerret), 2023",
+      "url": "https://unit42.paloaltonetworks.com/two-campaigns-by-north-korea-bad-actors-target-job-hunters/"
+    },
+    "target": "AnyDesk configuration",
+    "check_id": null,
+    "note": "Remote-access setup, not a stored secret."
+  },
+  {
+    "attacker_source": {
+      "name": "Unit 42: Contagious Interview (BeaverTail/InvisibleFerret), 2023",
+      "url": "https://unit42.paloaltonetworks.com/two-campaigns-by-north-korea-bad-actors-target-job-hunters/"
+    },
+    "target": "Keystrokes and clipboard",
+    "check_id": null,
+    "note": "Captured live, not a file the scanner can find."
+  },
+  {
+    "attacker_source": {
+      "name": "GitGuardian: Nx s1ngularity",
+      "url": "https://blog.gitguardian.com/the-nx-s1ngularity-attack-inside-the-credential-leak/"
+    },
+    "target": "Claude CLI config and tokens",
+    "check_id": "claude-creds",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "GitGuardian: Nx s1ngularity",
+      "url": "https://blog.gitguardian.com/the-nx-s1ngularity-attack-inside-the-credential-leak/"
+    },
+    "target": "Gemini CLI config and tokens",
+    "check_id": "gemini-settings",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "GitGuardian: Nx s1ngularity",
+      "url": "https://blog.gitguardian.com/the-nx-s1ngularity-attack-inside-the-credential-leak/"
+    },
+    "target": "Amazon Q CLI config and tokens",
+    "check_id": null,
+    "note": "Its config location is not yet confirmed in docs."
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": "npm tokens in ~/.npmrc",
+    "check_id": "npmrc",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": "SSH private keys (id_rsa)",
+    "check_id": "ssh-id-rsa",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": ".env files",
+    "check_id": "env_scan",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": ".gitconfig",
+    "check_id": "gitconfig",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": "GitHub token from gh auth token",
+    "check_id": "gh-hosts",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": "Exodus wallet",
+    "check_id": "exodus-wallet",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": "Electrum wallets",
+    "check_id": "electrum-wallets",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": "MetaMask and Phantom",
+    "check_id": "wallet_extension",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": "Ledger and Trezor data",
+    "check_id": null,
+    "note": "No confirmed Windows path yet."
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": "Solflare wallet",
+    "check_id": null,
+    "note": "No confirmed Windows path yet."
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": "Generic keystore files (UTC--*, keystore.json)",
+    "check_id": null,
+    "note": "Needs a name search across folders; not built."
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": "Environment variables",
+    "check_id": null,
+    "note": "Live process state, not a file."
+  },
+  {
+    "attacker_source": {
+      "name": "StepSecurity: Nx s1ngularity",
+      "url": "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
+    },
+    "target": "Shell startup files (.bashrc, .zshrc)",
+    "check_id": null,
+    "note": "The payload skipped Windows; these are Unix files."
+  },
+  {
+    "attacker_source": {
+      "name": "MITRE ATT&CK S9008: Shai-Hulud",
+      "url": "https://attack.mitre.org/software/S9008/"
+    },
+    "target": "~/.aws/credentials",
+    "check_id": "aws-credentials",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "MITRE ATT&CK S9008: Shai-Hulud",
+      "url": "https://attack.mitre.org/software/S9008/"
+    },
+    "target": "application_default_credentials.json (Google Cloud)",
+    "check_id": "gcloud-adc",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "MITRE ATT&CK S9008: Shai-Hulud",
+      "url": "https://attack.mitre.org/software/S9008/"
+    },
+    "target": "azureProfile.json (Azure CLI)",
+    "check_id": "azure-profile",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "MITRE ATT&CK S9008: Shai-Hulud",
+      "url": "https://attack.mitre.org/software/S9008/"
+    },
+    "target": ".npmrc",
+    "check_id": "npmrc",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "MITRE ATT&CK S9008: Shai-Hulud",
+      "url": "https://attack.mitre.org/software/S9008/"
+    },
+    "target": "GitHub config files",
+    "check_id": "gh-hosts",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "MITRE ATT&CK S9008: Shai-Hulud",
+      "url": "https://attack.mitre.org/software/S9008/"
+    },
+    "target": "Cloud metadata endpoints and secret managers",
+    "check_id": null,
+    "note": "Reached over the network; out of scope for an offline scan."
+  },
+  {
+    "attacker_source": {
+      "name": "Socket: Lazarus npm packages",
+      "url": "https://socket.dev/blog/lazarus-strikes-npm-again-with-a-new-wave-of-malicious-packages"
+    },
+    "target": "Chrome and Brave Login Data",
+    "check_id": "browser_store",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "Socket: Lazarus npm packages",
+      "url": "https://socket.dev/blog/lazarus-strikes-npm-again-with-a-new-wave-of-malicious-packages"
+    },
+    "target": "Firefox logins",
+    "check_id": null,
+    "note": "Firefox is not checked yet."
+  },
+  {
+    "attacker_source": {
+      "name": "Socket: Lazarus npm packages",
+      "url": "https://socket.dev/blog/lazarus-strikes-npm-again-with-a-new-wave-of-malicious-packages"
+    },
+    "target": "Browser Local Extension Settings (wallets)",
+    "check_id": "wallet_extension",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "Socket: Lazarus npm packages",
+      "url": "https://socket.dev/blog/lazarus-strikes-npm-again-with-a-new-wave-of-malicious-packages"
+    },
+    "target": "Solana id.json",
+    "check_id": "solana-id",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "Socket: Lazarus npm packages",
+      "url": "https://socket.dev/blog/lazarus-strikes-npm-again-with-a-new-wave-of-malicious-packages"
+    },
+    "target": "Exodus exodus.wallet",
+    "check_id": "exodus-wallet",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "Socket: Lazarus npm packages",
+      "url": "https://socket.dev/blog/lazarus-strikes-npm-again-with-a-new-wave-of-malicious-packages"
+    },
+    "target": "macOS keychain",
+    "check_id": null,
+    "note": "macOS is out of scope for v1."
+  },
+  {
+    "attacker_source": {
+      "name": "MITRE ATT&CK T1552.003: Shell History",
+      "url": "https://attack.mitre.org/techniques/T1552/003/"
+    },
+    "target": "PowerShell persistent history (ConsoleHost_history.txt)",
+    "check_id": "ps-history",
+    "note": ""
+  },
+  {
+    "attacker_source": {
+      "name": "MITRE ATT&CK T1555.003: Credentials from Web Browsers",
+      "url": "https://attack.mitre.org/techniques/T1555/003/"
+    },
+    "target": "Chrome Login Data",
+    "check_id": "browser_store",
+    "note": ""
+  }
+]

@@ -6,14 +6,14 @@ export const metadata: Metadata = { title: "Download | Spare Room" };
 
 function Cmd({ children }: { children: string }) {
   return (
-    <pre className="path mt-2 overflow-x-auto rounded-md border border-line bg-paper px-3 py-2 text-[13px]">{children}</pre>
+    <pre tabIndex={0} className="path mt-2 overflow-x-auto rounded-md border border-line bg-paper px-3 py-2 text-[13px]">{children}</pre>
   );
 }
 
 export default function Download() {
   return (
     <div className="max-w-3xl">
-      <h1 className="text-3xl font-semibold">Download</h1>
+      <h1 className="text-4xl font-semibold">Download</h1>
       <p className="mt-3 text-lg">Windows 10 or 11. One file, no installer.</p>
 
       <Card className="mt-6">
@@ -35,7 +35,7 @@ export default function Download() {
       <Cmd>{"spareroom.exe scan --demo\nspareroom.exe report --demo"}</Cmd>
 
       <SectionTitle>Then on your own machine</SectionTitle>
-      <Cmd>{"spareroom.exe report          # what code running as you could reach\nspareroom.exe setup           # create the interview account (asks for admin)\nspareroom.exe finish-setup    # run once inside the new account\nspareroom.exe verify          # inside the new account: what it can still reach"}</Cmd>
+      <Cmd>{"spareroom.exe report          # what code running as you could reach\nspareroom.exe setup           # create the spare room account (asks for admin)\nspareroom.exe finish-setup    # run once inside the spare room\nspareroom.exe verify          # inside the spare room: what it can still reach"}</Cmd>
 
       <SectionTitle>Or run from source</SectionTitle>
       <p>Python 3.12, standard library only.</p>

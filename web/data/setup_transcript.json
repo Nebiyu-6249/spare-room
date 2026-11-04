@@ -1,0 +1,12 @@
+{
+  "source": "Terminal output of the timed setup run on the test machine, 2026-11-04 (copied verbatim; the prompt answers are the operator's).",
+  "lines": [
+    "This creates a separate standard (non-admin) Windows account for running",
+    "code from recruiters and clients. Code run there cannot read the files in",
+    "your own account: SSH keys, cloud logins, browser passwords, wallets.",
+    "Windows will ask for permission, then a PowerShell window asks for the new",
+    "account's password. The password is not shown, saved or sent anywhere.",
+    "Create standard account 'interview'? [y/N]: y",
+    "Created 'interview' in 30 s. It is a standard user, not an administrator."
+  ]
+}

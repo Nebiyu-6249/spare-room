@@ -218,14 +218,19 @@ def _check_wallets_and_stores(home: Path) -> Tuple[List[Finding], int]:
 
 # --- .env hunt across drives -------------------------------------------------
 
-def _check_env_files(drives: List[Path]) -> Tuple[List[Finding], int]:
+def _check_env_files(drives: List[Path], deadline: float = None) -> Tuple[List[Finding], int]:
     findings: List[Finding] = []
     checked = 0
     for drive in drives:
         checked += 1
         drive_str = str(drive)
-        for root, dirs, files in os.walk(drive, topdown=True, onerror=lambda e: None):
-            # Bound the walk and skip noisy/irrelevant trees.
+        truncated = False
+        for n, (root, dirs, files) in enumerate(os.walk(drive, topdown=True, onerror=lambda e: None)):
+            # Stop this drive if we are out of time, so a full scan stays bounded.
+            if deadline is not None and (n & 0x3FF) == 0 and time.monotonic() > deadline:
+                truncated = True
+                break
+            # Bound the walk and skip noisy/irrelevant trees (system + node_modules).
             depth = root[len(drive_str):].count(os.sep)
             if depth >= L.ENV_MAX_DEPTH:
                 dirs[:] = []
@@ -239,6 +244,13 @@ def _check_env_files(drives: List[Path]) -> Tuple[List[Finding], int]:
                         "A .env usually holds API keys and connection strings. InvisibleFerret collects .env files across all drives, skipping node_modules.",
                         "Keep project .env files out of the interview account, or load secrets from a vault.",
                         L.SRC_UNIT42))
+        if truncated:
+            findings.append(Finding(
+                f"env-timelimited-{drive_str}".replace("\\", "").replace(":", "").lower(),
+                "env_file", drive_str, "env scan time-limited", "info",
+                f"The .env search on {drive_str} ran out of time and did not finish. More .env files may exist here.",
+                "Re-run the scan, or search this drive for .env files when you have more time.",
+                L.SRC_UNIT42))
     return findings, checked
 
 
@@ -253,9 +265,11 @@ _SIMPLE_DISPATCH = {
 }
 
 
-def scan(mode: str = "demo", demo_base: Path = None, account_label: str = "") -> ScanReport:
+def scan(mode: str = "demo", demo_base: Path = None, account_label: str = "",
+         budget_seconds: float = 50.0) -> ScanReport:
     started = time.monotonic()
     started_at = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+    deadline = started + budget_seconds
 
     if mode == "demo":
         base = demo_base or (Path(__file__).resolve().parent.parent / "demo" / "fake_laptop")
@@ -281,7 +295,7 @@ def scan(mode: str = "demo", demo_base: Path = None, account_label: str = "") ->
     findings.extend(wf)
     checked += wc
 
-    ef, ec = _check_env_files(drives)
+    ef, ec = _check_env_files(drives, deadline=deadline)
     findings.extend(ef)
     checked += ec
 

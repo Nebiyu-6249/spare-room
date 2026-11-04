@@ -69,7 +69,13 @@ BROWSER_PROFILES = ("Default", "Profile 1", "Profile 2")
 
 # .env hunt, matching InvisibleFerret's ssh_env behaviour.
 ENV_FILENAMES = (".env", ".env.local", ".env.development", ".env.production")
-ENV_SKIP_DIRS = {"node_modules", ".git", "AppData", "Windows", "$Recycle.Bin"}
+# node_modules is skipped to match InvisibleFerret; the rest are large system
+# trees with no project .env files, pruned to keep a full-drive scan under a minute.
+ENV_SKIP_DIRS = {
+    "node_modules", ".git", "AppData", "Windows", "WinSxS", "$Recycle.Bin",
+    "Program Files", "Program Files (x86)", "ProgramData", "System Volume Information",
+    ".cache", "venv", ".venv", "__pycache__",
+}
 ENV_MAX_DEPTH = 8  # keep the walk bounded so a scan stays under a minute
 
 

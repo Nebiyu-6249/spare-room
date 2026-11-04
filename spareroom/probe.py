@@ -50,16 +50,17 @@ def run(trap_id: str, trigger: str, paths: List[str], account_label: str) -> dic
     }
 
 
-def _demo_targets() -> List[str]:
+def _demo_targets(base: str = None) -> List[str]:
     # Imported lazily so the probe stays usable on its own.
     from .traps import demo_targets
-    return [str(p) for p in demo_targets()]
+    return [str(p) for p in demo_targets(Path(base) if base else None)]
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="spareroom-probe",
                                  description="Check whether listed paths exist and are readable. Reads no contents; no network.")
     ap.add_argument("--demo", action="store_true", help="probe the bundled fake laptop's planted paths")
+    ap.add_argument("--fake-laptop", metavar="DIR", help="probe a copy of the fake laptop at DIR")
     ap.add_argument("--targets", metavar="FILE", help="JSON file: a list of paths to check")
     ap.add_argument("--trap-id", default="manual", help="id recorded in the result")
     ap.add_argument("--trigger", default="manual run", help="how this probe was triggered")
@@ -69,10 +70,12 @@ def main(argv=None) -> int:
 
     if args.targets:
         paths = json.loads(Path(args.targets).read_text(encoding="utf-8"))
+    elif args.fake_laptop:
+        paths = _demo_targets(args.fake_laptop)
     elif args.demo:
         paths = _demo_targets()
     else:
-        print("Give --demo or --targets FILE.", file=sys.stderr)
+        print("Give --demo, --fake-laptop DIR or --targets FILE.", file=sys.stderr)
         return 2
 
     result = run(args.trap_id, args.trigger, paths, args.account)

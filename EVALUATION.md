@@ -5,10 +5,15 @@ The trap matrix and setup times are filled in from the test VM.
 
 ## 1. Trap-by-secret matrix (both accounts)
 
-Pending. This will show, for every trap and every fake secret, whether the
-trap could reach it from the normal account and from the interview account.
-Success criterion 4: every trap reaches every fake secret from the normal
-account, and none of them from the interview account.
+The probe was run once from each account against the same copy of the bundled
+fake laptop, placed inside the normal account's profile. Nothing was written to
+real credential locations. Success criterion 4: the normal account reaches every
+fake secret, and the interview account reaches none of them. Generated from the
+recorded results with `python -m spareroom.matrix`.
+
+<!-- matrix:start -->
+Pending: the interview account's run.
+<!-- matrix:end -->
 
 ## 2. Coverage against public attacker target lists
 

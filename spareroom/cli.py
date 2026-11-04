@@ -211,13 +211,20 @@ def cmd_verify(args, is_admin=accounts.current_account_is_admin) -> int:
     if is_admin():
         print("Warning: this account is an administrator. verify is meant to run inside")
         print("the standard interview account; results here will look worse than they should.\n")
-    report, blocked = verify()
+    only = args.only_profile or None
+    report, blocked = verify(only_profiles=only)
     _print_verify(report, blocked)
     if args.json:
         data = report.to_dict()
         data["blocked_in_other_profiles"] = blocked
+        data["only_profiles"] = only
         _write_json(args.json, data)
     return 0
+
+
+def cmd_probe(args) -> int:
+    from . import probe
+    return probe.main(args.probe_args)
 
 
 # --- remove-account ----------------------------------------------------------
@@ -301,7 +308,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     ve = sub.add_parser("verify", help="run inside the interview account: what is still reachable")
     ve.add_argument("--json", metavar="PATH", help="write the result as JSON")
+    ve.add_argument("--only-profile", metavar="NAME", action="append",
+                    help="check only this other profile folder (repeatable); others are left alone")
     ve.set_defaults(func=cmd_verify)
+
+    pr = sub.add_parser("probe", help="the trap probe: check whether listed paths are reachable",
+                        add_help=False)
+    pr.add_argument("probe_args", nargs=argparse.REMAINDER)
+    pr.set_defaults(func=cmd_probe)
 
     ra = sub.add_parser("remove-account", help="remove the interview account (asks for admin, confirms first)")
     ra.add_argument("--username", metavar="NAME", help=f"account name (default: {accounts.DEFAULT_USERNAME})")
@@ -313,6 +327,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None) -> int:
+    argv = sys.argv[1:] if argv is None else list(argv)
+    if argv[:1] == ["probe"]:
+        # The probe has its own options; hand them over untouched.
+        from . import probe
+        return probe.main(argv[1:])
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)

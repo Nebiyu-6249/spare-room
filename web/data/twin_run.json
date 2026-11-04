@@ -1,0 +1,146 @@
+{
+  "normal": {
+    "trap_id": "twin_probe",
+    "trigger": "manual run of the probe",
+    "account_label": "normal",
+    "visible": [
+      "<fake_laptop>\\C\\Users\\testdev\\.ssh\\id_rsa",
+      "<fake_laptop>\\C\\Users\\testdev\\.aws\\credentials",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Roaming\\gcloud\\application_default_credentials.json",
+      "<fake_laptop>\\C\\Users\\testdev\\.azure\\azureProfile.json",
+      "<fake_laptop>\\C\\Users\\testdev\\.npmrc",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Roaming\\GitHub CLI\\hosts.yml",
+      "<fake_laptop>\\C\\Users\\testdev\\.config\\solana\\id.json",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Roaming\\Exodus\\exodus.wallet\\seed.seco",
+      "<fake_laptop>\\C\\Users\\testdev\\.claude\\.credentials.json",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Login Data",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Local Extension Settings\\nkbihfbeogaeaoehlefnkodbefgpgknn\\000003.log",
+      "<fake_laptop>\\C\\Users\\testdev\\projects\\demo-app\\.env"
+    ],
+    "blocked": [],
+    "ran_at": "2026-11-04T18:55:28+04:00"
+  },
+  "interview": {
+    "trap_id": "twin_probe",
+    "trigger": "manual run of the probe",
+    "account_label": "interview",
+    "visible": [],
+    "blocked": [
+      "<fake_laptop>\\C\\Users\\testdev\\.ssh\\id_rsa",
+      "<fake_laptop>\\C\\Users\\testdev\\.aws\\credentials",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Roaming\\gcloud\\application_default_credentials.json",
+      "<fake_laptop>\\C\\Users\\testdev\\.azure\\azureProfile.json",
+      "<fake_laptop>\\C\\Users\\testdev\\.npmrc",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Roaming\\GitHub CLI\\hosts.yml",
+      "<fake_laptop>\\C\\Users\\testdev\\.config\\solana\\id.json",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Roaming\\Exodus\\exodus.wallet\\seed.seco",
+      "<fake_laptop>\\C\\Users\\testdev\\.claude\\.credentials.json",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Login Data",
+      "<fake_laptop>\\C\\Users\\testdev\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Local Extension Settings\\nkbihfbeogaeaoehlefnkodbefgpgknn\\000003.log",
+      "<fake_laptop>\\C\\Users\\testdev\\projects\\demo-app\\.env"
+    ],
+    "ran_at": "2026-11-04T18:58:26+04:00"
+  },
+  "matrix": {
+    "secrets": [
+      {
+        "category": "ssh",
+        "path": ".ssh/id_rsa"
+      },
+      {
+        "category": "cloud",
+        "path": ".aws/credentials"
+      },
+      {
+        "category": "cloud",
+        "path": "AppData/Roaming/gcloud/application_default_credentials.json"
+      },
+      {
+        "category": "cloud",
+        "path": ".azure/azureProfile.json"
+      },
+      {
+        "category": "token",
+        "path": ".npmrc"
+      },
+      {
+        "category": "token",
+        "path": "AppData/Roaming/GitHub CLI/hosts.yml"
+      },
+      {
+        "category": "desktop_wallet",
+        "path": ".config/solana/id.json"
+      },
+      {
+        "category": "desktop_wallet",
+        "path": "AppData/Roaming/Exodus/exodus.wallet/seed.seco"
+      },
+      {
+        "category": "ai_tool",
+        "path": ".claude/.credentials.json"
+      },
+      {
+        "category": "shell_history",
+        "path": "AppData/Roaming/Microsoft/Windows/PowerShell/PSReadLine/ConsoleHost_history.txt"
+      },
+      {
+        "category": "browser_store",
+        "path": "AppData/Local/Google/Chrome/User Data/Default/Login Data"
+      },
+      {
+        "category": "wallet_extension",
+        "path": "AppData/Local/Google/Chrome/User Data/Default/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn/000003.log"
+      },
+      {
+        "category": "env_file",
+        "path": "projects/demo-app/.env"
+      }
+    ],
+    "columns": [
+      {
+        "trap_id": "twin_probe",
+        "trigger": "manual run of the probe",
+        "account_label": "normal",
+        "ran_at": "2026-11-04T18:55:28+04:00",
+        "cells": [
+          "visible",
+          "visible",
+          "visible",
+          "visible",
+          "visible",
+          "visible",
+          "visible",
+          "visible",
+          "visible",
+          "visible",
+          "visible",
+          "visible",
+          "visible"
+        ]
+      },
+      {
+        "trap_id": "twin_probe",
+        "trigger": "manual run of the probe",
+        "account_label": "interview",
+        "ran_at": "2026-11-04T18:58:26+04:00",
+        "cells": [
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked",
+          "blocked"
+        ]
+      }
+    ]
+  }
+}

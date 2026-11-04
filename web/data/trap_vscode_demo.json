@@ -1,0 +1,22 @@
+{
+  "trap_id": "vscode_task",
+  "trigger": "folderOpen",
+  "account_label": "normal",
+  "visible": [
+    "C:\\Users\\testdev\\.ssh\\id_rsa",
+    "C:\\Users\\testdev\\.aws\\credentials",
+    "C:\\Users\\testdev\\AppData\\Roaming\\gcloud\\application_default_credentials.json",
+    "C:\\Users\\testdev\\.azure\\azureProfile.json",
+    "C:\\Users\\testdev\\.npmrc",
+    "C:\\Users\\testdev\\AppData\\Roaming\\GitHub CLI\\hosts.yml",
+    "C:\\Users\\testdev\\.config\\solana\\id.json",
+    "C:\\Users\\testdev\\AppData\\Roaming\\Exodus\\exodus.wallet\\seed.seco",
+    "C:\\Users\\testdev\\.claude\\.credentials.json",
+    "C:\\Users\\testdev\\AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt",
+    "C:\\Users\\testdev\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Login Data",
+    "C:\\Users\\testdev\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Local Extension Settings\\nkbihfbeogaeaoehlefnkodbefgpgknn\\000003.log",
+    "C:\\Users\\testdev\\projects\\demo-app\\.env"
+  ],
+  "blocked": [],
+  "ran_at": "2026-11-04T18:06:27+04:00"
+}

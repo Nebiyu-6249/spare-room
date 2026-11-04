@@ -1,11 +1,11 @@
 # One titled demo window for tools/record_demo.ps1. Do not run it by hand.
-# -Role your  : "Your account"   (runs as you)
-# -Role spare : "The spare room" (runs as the interview account)
-# -Role dry   : "Your account", whoami only (a short capture test)
+# -Role offline : "Your account"   (runs as you, with Wi-Fi off)
+# -Role spare   : "The spare room" (runs as the interview account)
+# -Role dry     : "Your account", whoami only (a short capture test)
 # It shows each command, then runs it for real against demo data or the fake
 # laptop only, and writes a timeline so the recording can be cut precisely.
 param(
-    [Parameter(Mandatory = $true)][ValidateSet('your', 'spare', 'dry')][string]$Role,
+    [Parameter(Mandatory = $true)][ValidateSet('offline', 'spare', 'dry')][string]$Role,
     [Parameter(Mandatory = $true)][string]$Config
 )
 $ErrorActionPreference = 'Continue'
@@ -70,8 +70,8 @@ function WaitFor([string]$name, [int]$seconds = 120) {
 function spareroom { & $cfg.exe @args }
 
 $timeline = New-Object System.Collections.ArrayList
-function Step([string]$shown, [scriptblock]$run, [double]$pause) {
-    Clear-Host
+function Step([string]$shown, [scriptblock]$run, [double]$pause, [switch]$Keep) {
+    if ($Keep) { Write-Host '' } else { Clear-Host }   # -Keep: leave the previous result on screen
     $start = Get-Date
     Write-Host -NoNewline -ForegroundColor DarkBlue 'PS> '
     foreach ($ch in $shown.ToCharArray()) { Write-Host -NoNewline -ForegroundColor DarkBlue $ch; Start-Sleep -Milliseconds 18 }
@@ -93,17 +93,10 @@ switch ($Role) {
     'dry' {
         Step 'whoami' { whoami } 2
     }
-    'your' {
-        Step 'whoami' { whoami } 3
-        Step 'spareroom scan --demo | Select-Object -First 26' { spareroom scan --demo | Select-Object -First 26 } 7
-        Step "spareroom report --demo --no-open --out $($cfg.report)" {
-            spareroom report --demo --no-open --out $cfg.report
-            Write-Host ''
-            Write-Host 'Opening the report in the browser...'
-            Signal 'your-report'
-            [void](WaitFor 'report-done' 60)
-        } 0.5
-        Step "spareroom probe --fake-laptop $($cfg.fakeLaptop)" { spareroom probe --fake-laptop $cfg.fakeLaptop } 8
+    'offline' {
+        # Wi-Fi is off here. Show that the network is gone, then run the scan.
+        Step 'ping -n 1 -w 1500 example.com' { ping -n 1 -w 1500 example.com } 3
+        Step 'spareroom scan --demo | Select-Object -First 15' { spareroom scan --demo | Select-Object -First 15 } 7 -Keep
     }
     'spare' {
         Step 'whoami' { whoami } 3

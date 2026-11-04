@@ -1,20 +1,23 @@
-# Record the Spare Room demo: two titled windows, captured one window at a time.
+# Record the Spare Room demo, one window at a time, with on-screen prompts.
 #
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tools\record_demo.ps1
 #
 # Run it from a normal (not administrator) PowerShell in the repo folder.
-# It asks for the interview account's credentials with Get-Credential before
-# recording starts. The password goes from that dialog straight to Windows to
-# open the spare room's window; it is never shown, logged or saved.
-# Only the windows this script opens are recorded (ffmpeg gdigrab by window
-# title), never the whole desktop. Only demo data and the fake laptop are used.
-# Raw clips and timing notes go to demo-video\raw\.
+#   A. Your account: VS Code opens traps\vscode_task (throwaway profile). You
+#      click Trust; the folder-open task runs and prints 13 reachable.
+#   B. Your account, offline: you turn Wi-Fi off; a ping fails and the demo
+#      scan completes; you turn Wi-Fi back on. Recording pauses while you click.
+#   C. The spare room: whoami, doctor, the probe (13 blocked), verify.
+# The interview account's password goes from a Get-Credential dialog straight
+# to Windows to open its window; it is never shown, logged or saved.
+# Only the windows this script opens are recorded: consoles by window title,
+# VS Code by the screen area under its window (it draws with the GPU, which
+# title capture cannot read). Prompts appear in a box outside that area.
+# Only demo data and the fake laptop are used. Clips go to demo-video\raw\.
 #
-# -DryRun records "Your account" running whoami for a few seconds, with no
-# credentials; it exists to test capture on this screen.
-#
-# -ReportOnly re-records just the report window (needs report.html from a full run).
-param([switch]$DryRun, [switch]$ReportOnly)
+# -DryRun opens VS Code for a few seconds and records it, with no credentials
+# and no clicks, to test capture on this screen.
+param([switch]$DryRun)
 $ErrorActionPreference = 'Stop'
 
 $Repo = Split-Path -Parent $PSScriptRoot
@@ -23,12 +26,19 @@ $Work = 'C:\SpareRoomShared\demo'
 $Signals = Join-Path $Work 'signal'
 $Raw = Join-Path $Repo 'demo-video\raw'
 $Ffmpeg = Join-Path $Repo 'tools\video\node_modules\ffmpeg-static\ffmpeg.exe'
-$Edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe",
-          "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+$Code = @("$env:LOCALAPPDATA\Programs\Microsoft VS Code\Code.exe", "$env:ProgramFiles\Microsoft VS Code\Code.exe") |
+    Where-Object { Test-Path $_ } | Select-Object -First 1
+$Trap = Join-Path $Repo 'traps\vscode_task'
 $Me = $env:USERNAME
 $FakeLaptop = Join-Path $env:USERPROFILE 'SpareRoomTest\fake_laptop'
 $SpareUser = 'interview'
+$VsData = Join-Path $env:TEMP 'spareroom-demo-vscode'
+# Where VS Code is placed and recorded, in physical pixels (16:9), and where the
+# prompt box goes (below it, never inside the recorded area).
+$VsRect = @(40, 40, 2160, 1215)
+$PromptY = 1300
 
+Add-Type -AssemblyName System.Windows.Forms, System.Drawing
 Add-Type @'
 using System;
 using System.Text;
@@ -39,34 +49,35 @@ public static class DemoWin {
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
     [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
-    [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
-    [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h, out RECT r);
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern IntPtr FindWindow(string cls, string title);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
-    // Physical-pixel rectangle of a window found by its exact title, or null.
-    public static int[] Rect(string title) {
-        var h = FindWindow(null, title); if (h == IntPtr.Zero) return null;
-        SetForegroundWindow(h);
-        RECT r; if (!GetWindowRect(h, out r)) return null;
-        return new int[] { r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top };
-    }
-    public static string Find(string part) {
-        string found = null;
+    [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int cx, int cy, uint flags);
+    [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr h, int cmd);
+    public static IntPtr Handle(string part) {
+        IntPtr found = IntPtr.Zero;
         EnumWindows(delegate (IntPtr h, IntPtr l) {
             if (!IsWindowVisible(h)) return true;
             var sb = new StringBuilder(512); GetWindowText(h, sb, 512);
-            var t = sb.ToString();
-            if (t.IndexOf(part, StringComparison.OrdinalIgnoreCase) >= 0) { found = t; return false; }
+            if (sb.ToString().IndexOf(part, StringComparison.OrdinalIgnoreCase) >= 0) { found = h; return false; }
             return true;
         }, IntPtr.Zero);
         return found;
     }
+    public static string Title(IntPtr h) { var sb = new StringBuilder(512); GetWindowText(h, sb, 512); return sb.ToString(); }
+    public static void Place(IntPtr h, int x, int y, int w, int hh) {
+        ShowWindow(h, 9); SetWindowPos(h, IntPtr.Zero, x, y, w, hh, 0x0040); SetForegroundWindow(h);
+    }
+    [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
+    [DllImport("dwmapi.dll")] static extern int DwmGetWindowAttribute(IntPtr h, int attr, out RECT r, int size);
+    // What is actually drawn on screen (without the invisible resize borders).
+    public static int[] Visible(IntPtr h) {
+        RECT r; if (DwmGetWindowAttribute(h, 9, out r, Marshal.SizeOf(typeof(RECT))) != 0) return null;
+        return new int[] { r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top };
+    }
 }
 '@
+[void][DemoWin]::SetProcessDPIAware()   # all coordinates in physical pixels, as ffmpeg sees them
 
-[void][DemoWin]::SetProcessDPIAware()   # window rectangles in physical pixels, as ffmpeg sees them
-
-function Fail([string]$msg) { Write-Host ''; Write-Host "Stopped: $msg" -ForegroundColor Red; exit 1 }
+function Fail([string]$msg) { Write-Host ''; Write-Host "Stopped: $msg" -ForegroundColor Red; Cleanup-VsCode; exit 1 }
 function Signal([string]$name) { New-Item -ItemType File -Force -Path (Join-Path $Signals $name) | Out-Null }
 function WaitFor([string]$name, [int]$seconds) {
     $deadline = (Get-Date).AddSeconds($seconds)
@@ -76,40 +87,39 @@ function WaitFor([string]$name, [int]$seconds) {
     }
     return $true
 }
-function WaitWindow([string]$part, [int]$seconds) {
+function WaitHandle([string]$part, [int]$seconds) {
     $deadline = (Get-Date).AddSeconds($seconds)
     while ((Get-Date) -lt $deadline) {
-        $t = [DemoWin]::Find($part)
-        if ($t) { return $t }
+        $h = [DemoWin]::Handle($part)
+        if ($h -ne [IntPtr]::Zero) { return $h }
         Start-Sleep -Milliseconds 200
     }
-    return $null
+    return [IntPtr]::Zero
 }
 
 $events = New-Object System.Collections.ArrayList
-function Start-Clip([string]$windowTitle, [string]$name, [int[]]$rect = $null) {
+function Note([string]$what) {
+    [void]$events.Add([ordered]@{ event = $what; at = (Get-Date).ToString('o') })
+    $events | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $Raw 'events.json') -Encoding UTF8
+}
+$clips = New-Object System.Collections.ArrayList
+function Start-Clip([string]$name, [string]$windowTitle, [int[]]$rect = $null) {
     $out = Join-Path $Raw "$name.mkv"
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = $Ffmpeg
-    # One window only: by its exact title, or (for browser windows, whose GPU-drawn
-    # pixels title capture cannot read) the screen rectangle that window occupies.
     if ($rect) {
         $w = $rect[2] - ($rect[2] % 2); $h = $rect[3] - ($rect[3] % 2)
-        $input = "-offset_x $($rect[0]) -offset_y $($rect[1]) -video_size ${w}x${h} -i desktop"
-    } else { $input = "-i `"title=$windowTitle`"" }
-    # 30 fps, scaled and padded to 1920x1080.
-    $psi.Arguments = "-hide_banner -loglevel error -y -f gdigrab -framerate 30 -draw_mouse 0 $input " +
+        $source = "-offset_x $($rect[0]) -offset_y $($rect[1]) -video_size ${w}x${h} -i desktop"
+    } else { $source = "-i `"title=$windowTitle`"" }
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $Ffmpeg
+    $psi.Arguments = "-hide_banner -loglevel error -y -f gdigrab -framerate 30 -draw_mouse 1 $source " +
         "-vf `"scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=0xF2F2F2,format=yuv420p`" " +
         "-c:v libx264 -preset veryfast -crf 16 `"$out`""
-    $psi.UseShellExecute = $false
-    $psi.RedirectStandardInput = $true
-    $psi.CreateNoWindow = $true
-    # Windows is scaled above 100% here; without this, gdigrab grabs the wrong-sized area.
-    $psi.EnvironmentVariables['__COMPAT_LAYER'] = 'HighDpiAware'
+    $psi.UseShellExecute = $false; $psi.RedirectStandardInput = $true; $psi.CreateNoWindow = $true
+    $psi.EnvironmentVariables['__COMPAT_LAYER'] = 'HighDpiAware'   # Windows is scaled above 100% here
     $p = [System.Diagnostics.Process]::Start($psi)
-    $clip = [ordered]@{ name = $name; window = $windowTitle; file = $out; started = (Get-Date).ToString('o'); process = $p }
+    $clip = [ordered]@{ name = $name; window = $windowTitle; rect = $rect; file = $out; started = (Get-Date).ToString('o'); process = $p }
     Start-Sleep -Milliseconds 1500
-    if ($p.HasExited) { Fail "ffmpeg could not start recording '$windowTitle'." }
+    if ($p.HasExited) { Fail "ffmpeg could not start recording $name." }
     return $clip
 }
 function Stop-Clip($clip) {
@@ -117,10 +127,37 @@ function Stop-Clip($clip) {
     try { $clip.process.StandardInput.Write('q'); $clip.process.StandardInput.Close() } catch { }
     if (-not $clip.process.WaitForExit(20000)) { $clip.process.Kill() }
     $c = [ordered]@{}; foreach ($k in $clip.Keys) { if ($k -ne 'process') { $c[$k] = $clip[$k] } }
-    [void]$events.Add($c)
-    $events | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $Raw 'clips.json') -Encoding UTF8
+    [void]$clips.Add($c)
+    $clips | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $Raw 'clips.json') -Encoding UTF8
 }
-function Open-Window([string]$role, [System.Management.Automation.PSCredential]$cred) {
+
+# A prompt box below the recorded area. Blocks until Continue is pressed.
+function Show-Prompt([string]$heading, [string]$text, [int]$autoCloseSeconds = 0) {
+    Note "prompt: $heading"
+    $f = New-Object Windows.Forms.Form
+    $f.Text = 'Spare Room recording'; $f.TopMost = $true; $f.FormBorderStyle = 'FixedDialog'
+    $f.MaximizeBox = $false; $f.MinimizeBox = $false; $f.StartPosition = 'Manual'
+    $f.Location = New-Object Drawing.Point($VsRect[0], $PromptY); $f.Size = New-Object Drawing.Size($VsRect[2], 270)
+    $f.BackColor = [Drawing.Color]::FromArgb(250, 250, 247)
+    $h = New-Object Windows.Forms.Label; $h.Text = $heading; $h.Font = New-Object Drawing.Font('Segoe UI', 15, [Drawing.FontStyle]::Bold)
+    $h.AutoSize = $true; $h.Location = New-Object Drawing.Point(24, 16)
+    $l = New-Object Windows.Forms.Label; $l.Text = $text; $l.Font = New-Object Drawing.Font('Segoe UI', 12)
+    $l.Location = New-Object Drawing.Point(24, 70); $l.Size = New-Object Drawing.Size(($VsRect[2] - 340), 170)
+    $b = New-Object Windows.Forms.Button; $b.Text = 'Continue'; $b.Font = New-Object Drawing.Font('Segoe UI', 13)
+    $b.Size = New-Object Drawing.Size(240, 80); $b.Location = New-Object Drawing.Point(($VsRect[2] - 290), 90)
+    $b.DialogResult = [Windows.Forms.DialogResult]::OK
+    $f.Controls.AddRange(@($h, $l, $b)); $f.AcceptButton = $b
+    if ($autoCloseSeconds -gt 0) {
+        $t = New-Object Windows.Forms.Timer; $t.Interval = $autoCloseSeconds * 1000
+        $t.Add_Tick({ $f.Close() }); $t.Start()
+    }
+    [void]$f.ShowDialog()
+    Note "continue: $heading"
+}
+
+function Network-Up { @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object Status -eq 'Up').Count -gt 0 }
+
+function Open-Console([string]$role, [System.Management.Automation.PSCredential]$cred) {
     $cmdline = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$Work\demo_window.ps1`" -Role $role -Config `"$Work\config.json`""
     $conhost = Join-Path $env:SystemRoot 'System32\conhost.exe'
     if (-not $cred) { Start-Process -FilePath $conhost -ArgumentList $cmdline -WorkingDirectory $Work; return }
@@ -133,65 +170,73 @@ function Open-Window([string]$role, [System.Management.Automation.PSCredential]$
     }
 }
 
-# The report in a clean Edge app window (temporary profile: no tabs, bookmarks or
-# history). GPU drawing is off, because gdigrab cannot see GPU-drawn windows and
-# records them as black.
-$edgeData = Join-Path $env:TEMP 'spareroom-demo-edge'
-function Record-Report {
-    $reportUrl = 'file:///' + ((Join-Path $Work 'report.html') -replace '\\', '/')
-    Start-Process -FilePath $Edge -ArgumentList @("--user-data-dir=`"$edgeData`"", '--no-first-run', '--no-default-browser-check',
-        '--disable-gpu', '--window-position=40,40', '--window-size=1500,950', "--app=$reportUrl")
-    $tE = WaitWindow 'Spare Room report' 30
-    if ($tE) {
-        Start-Sleep -Seconds 2   # let the page finish drawing
-        $rect = [DemoWin]::Rect($tE)
-        if (-not $rect) { Fail 'Could not measure the report window.' }
-        # Inset by the window frame so only the page area is recorded.
-        $rect = @(($rect[0] + 12), ($rect[1] + 2), ($rect[2] - 24), ($rect[3] - 14))
-        Start-Sleep -Milliseconds 400
-        $clipE = Start-Clip $tE 'report' $rect
-        Start-Sleep -Seconds 6
-        Stop-Clip $clipE
-    } else { Write-Host 'The report window did not appear; continuing without that clip.' }
-    Get-CimInstance Win32_Process -Filter "Name = 'msedge.exe'" |
-        Where-Object { $_.CommandLine -like "*spareroom-demo-edge*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+# VS Code with a throwaway profile: no recent folders, accounts or extensions on
+# screen, and a fresh Workspace Trust state, so it asks about this folder.
+function Start-VsCode {
+    Remove-Item -Recurse -Force $VsData -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path "$VsData\data\User", "$VsData\ext" | Out-Null
+    # Setting ids checked against the installed VS Code's own workbench code.
+    [ordered]@{
+        'security.workspace.trust.startupPrompt' = 'once'
+        'workbench.startupEditor' = 'none'
+        'workbench.welcomePage.experimentalOnboarding' = $false   # no Copilot sign-in screen
+        'chat.disableAIFeatures' = $true
+        'workbench.colorTheme' = 'Default Light Modern'
+        'workbench.tips.enabled' = $false
+        'window.zoomLevel' = 1
+        'terminal.integrated.fontSize' = 16
+        'telemetry.telemetryLevel' = 'off'
+        'update.mode' = 'none'
+    } | ConvertTo-Json | Set-Content -LiteralPath "$VsData\data\User\settings.json" -Encoding UTF8
+    Start-Process -FilePath $Code -ArgumentList @("--user-data-dir=`"$VsData\data`"", "--extensions-dir=`"$VsData\ext`"",
+        '--new-window', "`"$Trap`"")
+    $h = WaitHandle 'vscode_task' 60
+    if ($h -eq [IntPtr]::Zero) { Fail 'VS Code did not open traps\vscode_task.' }
+    Start-Sleep -Seconds 2
+    [DemoWin]::Place($h, $VsRect[0], $VsRect[1], $VsRect[2], $VsRect[3])
+    Start-Sleep -Seconds 2
+    $v = [DemoWin]::Visible($h)
+    if (-not $v) { Fail 'Could not measure the VS Code window.' }
+    # Record exactly what is drawn, 1 px inside its edge.
+    return @(($v[0] + 1), ($v[1] + 1), ($v[2] - 2), ($v[3] - 2))
+}
+function Cleanup-VsCode {
+    Get-CimInstance Win32_Process -Filter "Name = 'Code.exe'" -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -like "*spareroom-demo-vscode*" } |
+        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+    Start-Sleep -Milliseconds 800
+    Remove-Item -Recurse -Force $VsData -ErrorAction SilentlyContinue
 }
 
 # --- checks ------------------------------------------------------------------
 if (-not (Test-Path $Exe)) { Fail "$Exe not found." }
 $ver = (& $Exe --version) -join ''
-if ($ver -notmatch '0\.1\.1') { Fail "$Exe is '$ver'; version 0.1.1 is needed (it has doctor)." }
+if ($ver -notmatch '0\.1\.2') { Fail "$Exe is '$ver'; version 0.1.2 is needed." }
 if (-not (Test-Path $Ffmpeg)) { Fail "ffmpeg not found at $Ffmpeg (run npm install in tools\video)." }
+if (-not $Code) { Fail 'VS Code (Code.exe) not found.' }
+if (-not (Test-Path (Join-Path $Trap '.vscode\tasks.json'))) { Fail 'traps\vscode_task is missing.' }
 if (-not $DryRun) {
+    if (-not (Get-Command python -ErrorAction SilentlyContinue)) { Fail 'python is not on PATH; the VS Code trap task needs it.' }
     if (-not (Test-Path $FakeLaptop)) { Fail "The fake laptop copy is missing: $FakeLaptop" }
-    if (-not $Edge) { Fail 'Microsoft Edge not found; it opens the report in a clean window.' }
     if (-not (Get-LocalUser -Name $SpareUser -ErrorAction SilentlyContinue)) { Fail "No account named '$SpareUser'." }
 }
 
 New-Item -ItemType Directory -Force -Path $Work, $Signals, $Raw | Out-Null
-if ($ReportOnly) {
-    if (-not (Test-Path (Join-Path $Work 'report.html'))) { Fail 'No report.html yet; do a full run first.' }
-    if (Test-Path (Join-Path $Raw 'clips.json')) {
-        $old = Get-Content (Join-Path $Raw 'clips.json') -Raw | ConvertFrom-Json
-        foreach ($c in $old) { if ($c.name -ne 'report') { $h = [ordered]@{}; $c.PSObject.Properties | ForEach-Object { $h[$_.Name] = $_.Value }; [void]$events.Add($h) } }
-    }
-    Record-Report
-    Write-Host "Report clip saved to $Raw\report.mkv"
-    exit 0
-}
 Get-ChildItem $Signals -File | Remove-Item -Force
 Get-ChildItem $Work -Filter 'timeline-*.json' -File | Remove-Item -Force
+Get-ChildItem $Raw -File -ErrorAction SilentlyContinue | Remove-Item -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'demo_window.ps1') -Destination $Work -Force
-[ordered]@{ exe = $Exe; work = $Work; signals = $Signals; me = $Me; fakeLaptop = $FakeLaptop;
-            report = (Join-Path $Work 'report.html') } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Work 'config.json') -Encoding UTF8
+[ordered]@{ exe = $Exe; work = $Work; signals = $Signals; me = $Me; fakeLaptop = $FakeLaptop } |
+    ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Work 'config.json') -Encoding UTF8
 
 if ($DryRun) {
-    Open-Window 'dry' $null
-    $t = WaitWindow 'Your account' 30; if (-not $t) { Fail 'The "Your account" window did not appear.' }
-    if (-not (WaitFor 'dry-ready' 30)) { Fail 'The window did not get ready.' }
-    $clip = Start-Clip $t 'dryrun'; Signal 'dry-go'
-    [void](WaitFor 'dry-done' 60); Start-Sleep -Seconds 1; Stop-Clip $clip; Signal 'dry-close'
-    Write-Host "Dry run saved to $Raw\dryrun.mkv"
+    $vsRec = Start-VsCode
+    $clip = Start-Clip 'dry-vscode' $null $vsRec
+    Start-Sleep -Seconds 4
+    Stop-Clip $clip
+    Cleanup-VsCode
+    Show-Prompt 'Prompt test' 'This box closes by itself in 4 seconds.' 4
+    Write-Host "Dry run saved to $Raw\dry-vscode.mkv"
     exit 0
 }
 
@@ -201,47 +246,62 @@ Write-Host 'Spare Room demo recording' -ForegroundColor Cyan
 Write-Host ''
 Write-Host 'Before you start:'
 Write-Host '  1. Turn on Do Not Disturb (Settings > System > Notifications), so no pop-ups appear.'
-Write-Host '  2. Close other windows, especially anything personal.'
-Write-Host '  3. Do not touch the mouse or keyboard while it records (about 2 minutes).'
+Write-Host '  2. Close other windows, especially anything personal, and close VS Code.'
+Write-Host '  3. A box at the bottom of the screen tells you whenever to click. Otherwise do not'
+Write-Host '     touch the mouse or keyboard. It takes about 4 minutes.'
 Write-Host ''
-Write-Host 'Only the windows this script opens are recorded. Nothing real is scanned on camera:'
-Write-Host 'your account runs the demo scan and the fake laptop; the spare room checks itself.'
+Write-Host 'Only the windows this script opens are recorded, and only demo data and the fake'
+Write-Host 'laptop are used. Recording pauses while you change Wi-Fi.'
 Write-Host ''
 [void](Read-Host 'Press Enter when ready')
 $cred = Get-Credential -UserName $SpareUser -Message 'Password for the spare room account. Used only to open its window; not shown or saved.'
 if (-not $cred) { Fail 'No credentials given. Nothing was recorded.' }
 
-# --- Window A: your account --------------------------------------------------
-Write-Host 'Recording "Your account"...'
-Open-Window 'your' $null
-$tA = WaitWindow 'Your account' 30; if (-not $tA) { Fail 'The "Your account" window did not appear.' }
-if (-not (WaitFor 'your-ready' 30)) { Fail 'The "Your account" window did not get ready.' }
-$clipA = Start-Clip $tA 'your-account'
-Signal 'your-go'
+# --- A. VS Code opens the trap folder in your account --------------------------
+Write-Host 'A. VS Code...'
+$vsRec = Start-VsCode
+$clipV = Start-Clip 'vscode' $null $vsRec
+Note 'vscode recording'
+Show-Prompt 'Your turn: VS Code' ("VS Code asks whether you trust the authors of this folder. Click 'Yes, I trust the authors'. " +
+    "If it then asks about automatic tasks, click Allow. Wait until the terminal at the bottom of VS Code shows " +
+    "'visible: 13' and the list of paths, then click Continue here.")
+Start-Sleep -Seconds 2
+Stop-Clip $clipV
+Cleanup-VsCode
 
-if (-not (WaitFor 'your-report' 120)) { Fail 'The report step did not start.' }
-Record-Report
-Signal 'report-done'
-
-if (-not (WaitFor 'your-done' 180)) { Fail 'The "Your account" window did not finish.' }
+# --- B. Offline: the demo scan with Wi-Fi off ----------------------------------
+Write-Host 'B. Offline scan...'
+Show-Prompt 'Your turn: turn Wi-Fi off' ("Recording is paused. Turn Wi-Fi off now (click the network icon on the taskbar, then Wi-Fi). " +
+    "If a network cable is plugged in, unplug it. Then click Continue.")
+if (Network-Up) {
+    Show-Prompt 'A network still looks connected' ("Windows still reports a connected network adapter. Turn it off, then click Continue " +
+        "(the recording will go ahead either way).")
+}
+Note ("network up after prompt: " + (Network-Up))
+Open-Console 'offline' $null
+$tA = WaitHandle 'Your account' 30; if ($tA -eq [IntPtr]::Zero) { Fail 'The "Your account" window did not appear.' }
+if (-not (WaitFor 'offline-ready' 30)) { Fail 'The "Your account" window did not get ready.' }
+$clipA = Start-Clip 'offline' 'Your account'
+Signal 'offline-go'
+if (-not (WaitFor 'offline-done' 120)) { Fail 'The offline scan did not finish.' }
 Start-Sleep -Milliseconds 500
 Stop-Clip $clipA
-Signal 'your-close'
+Signal 'offline-close'
+Show-Prompt 'Your turn: turn Wi-Fi back on' 'Recording is paused. Turn Wi-Fi back on (and plug the cable back in, if you unplugged one). Then click Continue.'
 
-# --- Window B: the spare room ------------------------------------------------
-Write-Host 'Recording "The spare room"...'
-Open-Window 'spare' $cred
+# --- C. The spare room ---------------------------------------------------------
+Write-Host 'C. The spare room...'
+Open-Console 'spare' $cred
 $cred = $null
-$tB = WaitWindow 'The spare room' 90; if (-not $tB) { Fail 'The "The spare room" window did not appear.' }
+$tB = WaitHandle 'The spare room' 90; if ($tB -eq [IntPtr]::Zero) { Fail 'The "The spare room" window did not appear.' }
 if (-not (WaitFor 'spare-ready' 60)) { Fail 'The spare room window did not get ready.' }
-$clipB = Start-Clip $tB 'spare-room'
+$clipB = Start-Clip 'spare-room' 'The spare room'
 Signal 'spare-go'
 if (-not (WaitFor 'spare-done' 240)) { Fail 'The spare room window did not finish.' }
 Start-Sleep -Milliseconds 500
 Stop-Clip $clipB
 Signal 'spare-close'
 
-Copy-Item -LiteralPath (Join-Path $Work 'timeline-your.json'), (Join-Path $Work 'timeline-spare.json') -Destination $Raw -Force
-Remove-Item -Recurse -Force $edgeData -ErrorAction SilentlyContinue
+Copy-Item -LiteralPath (Join-Path $Work 'timeline-offline.json'), (Join-Path $Work 'timeline-spare.json') -Destination $Raw -Force
 Write-Host ''
 Write-Host "Done. Raw clips and timings are in $Raw. Tell Claude to edit them." -ForegroundColor Green

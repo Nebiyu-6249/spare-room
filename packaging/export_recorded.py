@@ -57,6 +57,8 @@ def outside_profile_hint(path: str) -> str:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", default=r"C:\SpareRoomShared\results")
+    ap.add_argument("--spare-account", default="interview",
+                    help="account name the doctor output must come from (default: interview)")
     ap.add_argument("--release-sums", metavar="FILE",
                     help="SHA256SUMS.txt of a newly published release, to update the Download page's checksum")
     args = ap.parse_args(argv)
@@ -124,6 +126,11 @@ def main(argv=None) -> int:
     doc = res / "doctor.json"
     if doc.exists():
         d = _load(doc)
+        # The site claims this was recorded inside the spare room: refuse a run
+        # from any other account rather than publish it under that claim.
+        if d.get("account_label", "").lower() != args.spare_account.lower():
+            raise SystemExit(f"{doc} was recorded in account '{d.get('account_label')}', not "
+                             f"'{args.spare_account}'. Re-run doctor inside the spare room.")
         keep = ("name", "label", "found", "scope", "version", "note", "install")
         out = {"ran_at": d["ran_at"], "tools": [{k: t.get(k) for k in keep} for t in d["tools"]]}
         (OUT / "doctor.json").write_text(json.dumps(out, indent=2), encoding="utf-8")

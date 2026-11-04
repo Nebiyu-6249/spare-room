@@ -9,3 +9,6 @@ dist/
 spareroom-report.html
 trap-result.json
 *.scan.json
+
+# Netlify CLI local state
+.netlify/

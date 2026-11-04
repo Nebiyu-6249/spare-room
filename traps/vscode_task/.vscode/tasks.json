@@ -1,0 +1,28 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "spare-room-demo-probe",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "-m",
+                "spareroom.probe",
+                "--demo",
+                "--trap-id",
+                "vscode_task",
+                "--trigger",
+                "folderOpen",
+                "--out",
+                "trap-result.json"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        }
+    ]
+}

@@ -1,0 +1,4 @@
+cd projects
+npm install
+setx DEMO_API_KEY FAKE-DEMO-secret-on-command-line
+git push

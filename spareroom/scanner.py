@@ -267,15 +267,22 @@ _SIMPLE_DISPATCH = {
 
 def scan(mode: str = "demo", demo_base: Path = None, account_label: str = "",
          budget_seconds: float = 50.0) -> ScanReport:
-    started = time.monotonic()
-    started_at = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-    deadline = started + budget_seconds
-
     if mode == "demo":
         base = demo_base or (Path(__file__).resolve().parent.parent / "demo" / "fake_laptop")
         home, drives = demo_roots(base)
     else:
         home, drives = real_roots()
+    return scan_roots(home, drives, mode=mode, account_label=account_label,
+                      budget_seconds=budget_seconds)
+
+
+def scan_roots(home: Path, drives: List[Path], mode: str = "real", account_label: str = "",
+               budget_seconds: float = 50.0, extra=None) -> ScanReport:
+    """Scan one home dir and a set of drive roots. ``extra`` is an optional
+    callable returning (findings, locations_checked), used by verify."""
+    started = time.monotonic()
+    started_at = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+    deadline = started + budget_seconds
 
     findings: List[Finding] = []
     checked = 0
@@ -298,6 +305,11 @@ def scan(mode: str = "demo", demo_base: Path = None, account_label: str = "",
     ef, ec = _check_env_files(drives, deadline=deadline)
     findings.extend(ef)
     checked += ec
+
+    if extra is not None:
+        xf, xc = extra()
+        findings.extend(xf)
+        checked += xc
 
     duration_ms = int((time.monotonic() - started) * 1000)
     return ScanReport(

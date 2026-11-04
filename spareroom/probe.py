@@ -21,22 +21,24 @@ def check_paths(paths: List[str]) -> Tuple[List[str], List[str]]:
     """Return (visible, blocked). A path that is absent is simply omitted.
 
     visible  - present and readable from this account
-    blocked  - present but not readable from this account
+    blocked  - access denied: present but not readable, or inside a folder this
+               account may not look into (so it cannot tell if the file exists)
+    Only metadata is queried (os.stat, os.access); no file is opened.
     """
     visible: List[str] = []
     blocked: List[str] = []
     for p in paths:
-        path = Path(p)
         try:
-            present = path.exists()
-        except OSError:
-            present = False
-        if not present:
+            os.stat(p)
+        except PermissionError:
+            blocked.append(str(Path(p)))
             continue
-        if os.access(path, os.R_OK):
-            visible.append(str(path))
+        except OSError:
+            continue  # not found, bad name, drive not ready: absent here
+        if os.access(p, os.R_OK):
+            visible.append(str(Path(p)))
         else:
-            blocked.append(str(path))
+            blocked.append(str(Path(p)))
     return visible, blocked
 
 

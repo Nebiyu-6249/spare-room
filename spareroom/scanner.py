@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Iterator, List, Tuple
 
 from . import TOOL_VERSION
+from .access import VISIBLE, path_state
 from .models import Finding, ScanReport
 from . import locations as L
 
@@ -238,6 +239,9 @@ def _check_env_files(drives: List[Path], deadline: float = None) -> Tuple[List[F
             for fname in files:
                 if fname in L.ENV_FILENAMES:
                     path = Path(root) / fname
+                    # Listed is not the same as readable; report only what this account can read.
+                    if path_state(path) != VISIBLE:
+                        continue
                     findings.append(Finding(
                         f"env-{len(findings)}", "env_file", str(path),
                         "environment file", "high",

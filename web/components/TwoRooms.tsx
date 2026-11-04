@@ -1,16 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { acct, cellsFor, KIND_LABELS, KIND_OF, setupLines, twin, winPath, type Kind } from "@/lib/data";
+import { acct, cellsFor, KIND_OF, KIND_ORDER, setupLines, SHORT_NAMES, twin, winPath, type Kind } from "@/lib/data";
 
 // ---- recorded data ---------------------------------------------------------
 
-const SECRETS = twin.matrix.secrets.map((s) => ({ ...s, kind: KIND_OF[s.category] as Kind, win: winPath(s.path) }));
+const SECRETS = twin.matrix.secrets.map((s, i) => ({
+  ...s, i, kind: KIND_OF[s.category] as Kind, win: winPath(s.path), name: SHORT_NAMES[s.path] ?? s.path,
+}));
 const YOURS = cellsFor("normal");
 const SPARE = cellsFor("interview");
 const TOTAL = SECRETS.length;
 const YOURS_REACHED = YOURS.filter((c) => c === "visible").length;
 const SPARE_REACHED = SPARE.filter((c) => c === "visible").length;
+const SPARE_BLOCKED = SPARE.filter((c) => c === "blocked").length;
 
 // The recorded setup output, hard-wrapped at the terminal's width, joined back
 // into its sentences so the panel does not wrap it twice. No words change.
@@ -29,11 +32,19 @@ const STEP_LABELS = [
 const LINE_COUNTS = [TOTAL, SETUP_UNITS.length, TOTAL];
 const TICK_MS = [170, 320, 170];
 
-// ---- floor plan ------------------------------------------------------------
+// Items in the room, grouped by kind; two columns of rows.
+const ROOM_ORDER = [...SECRETS].sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || a.i - b.i);
+const ROWS = Math.ceil(ROOM_ORDER.length / 2);
+const ROW_H = 48;
+const TOP = 58;
+const H = TOP + ROWS * ROW_H + 34; // room height in viewBox units
+const COL_X = [22, 198];
 
-type IconState = "idle" | "reached" | "blocked";
+// ---- drawing ---------------------------------------------------------------
 
-function Icon({ kind }: { kind: Kind }) {
+type ItemState = "idle" | "reachable" | "blocked";
+
+function KindIcon({ kind }: { kind: Kind }) {
   switch (kind) {
     case "keys":
       return <><circle cx="8" cy="12" r="4" /><path d="M12 12h9M18 12v3M15 12v2" /></>;
@@ -52,60 +63,66 @@ function Icon({ kind }: { kind: Kind }) {
   }
 }
 
-// Where each kind sits in "Your room" (viewBox 380 x 300): label position and box.
-const LAYOUT: Record<Kind, { x: number; y: number }> = {
-  keys: { x: 24, y: 64 }, cloud: { x: 198, y: 64 },
-  wallets: { x: 24, y: 144 }, browser: { x: 198, y: 144 }, ai: { x: 276, y: 144 },
-  shell: { x: 24, y: 224 }, env: { x: 150, y: 224 },
+const TONE: Record<ItemState, { stroke: string; halo: string; text: string }> = {
+  idle: { stroke: "var(--muted)", halo: "transparent", text: "var(--muted)" },
+  reachable: { stroke: "var(--high)", halo: "#f7e4e7", text: "var(--high)" },
+  blocked: { stroke: "var(--ok)", halo: "#e3efe6", text: "var(--ok)" },
 };
-const SLOT = 40;
-
-const STROKE: Record<IconState, string> = { idle: "var(--muted)", reached: "var(--high)", blocked: "var(--ok)" };
-const HALO: Record<IconState, string> = { idle: "transparent", reached: "#f7e4e7", blocked: "#e3efe6" };
 
 function Walls({ title }: { title: string }) {
+  const b = H - 8;
   return (
     <>
-      {/* walls with a door gap in the bottom wall, and the door leaf swung in */}
-      <path d="M262 286H8V8h364v278h-50" fill="none" stroke="var(--ink)" strokeWidth="3" strokeLinejoin="round" />
-      <path d="M262 286V232" stroke="var(--ink)" strokeWidth="2" />
-      <path d="M262 232A54 54 0 0 1 316 286" fill="none" stroke="var(--line)" strokeWidth="1.5" strokeDasharray="4 4" />
-      <text x="24" y="38" fontSize="16" fontWeight="600" fill="var(--ink)">{title}</text>
+      <path d={`M262 ${b}H8V8h364v${b - 8}h-50`} fill="none" stroke="var(--ink)" strokeWidth="3" strokeLinejoin="round" />
+      <path d={`M262 ${b}V${b - 54}`} stroke="var(--ink)" strokeWidth="2" />
+      <path d={`M262 ${b - 54}A54 54 0 0 1 316 ${b}`} fill="none" stroke="var(--line)" strokeWidth="1.5" strokeDasharray="4 4" />
+      <text x="22" y="38" fontSize="16" fontWeight="600" fill="var(--ink)">{title}</text>
     </>
   );
 }
 
-function YourRoom({ states }: { states: IconState[] }) {
-  const byKind = (Object.keys(LAYOUT) as Kind[]).map((k) => ({
-    kind: k,
-    items: SECRETS.map((s, i) => ({ ...s, i })).filter((s) => s.kind === k),
-  }));
-  const reached = states.filter((s) => s === "reached").length;
+/** Small state mark drawn before the word: a filled dot for reachable, a lock for blocked. */
+function StateMark({ state, x, y }: { state: ItemState; x: number; y: number }) {
+  if (state === "reachable") return <circle cx={x + 5} cy={y - 5} r="4.5" fill="var(--high)" />;
+  if (state === "blocked") {
+    return (
+      <g fill="none" stroke="var(--ok)" strokeWidth="1.6" strokeLinecap="round">
+        <rect x={x} y={y - 9} width="10" height="8" rx="1.5" fill="var(--ok)" />
+        <path d={`M${x + 2.2} ${y - 9}v-2.5a2.8 2.8 0 0 1 5.6 0v2.5`} />
+      </g>
+    );
+  }
+  return null;
+}
+
+function YourRoom({ states }: { states: ItemState[] }) {
+  const reachable = states.filter((s) => s === "reachable").length;
+  const blocked = states.filter((s) => s === "blocked").length;
+  const label = blocked ? `${blocked} of ${TOTAL} blocked when tried from the spare room`
+    : reachable ? `${reachable} of ${TOTAL} reachable from your account` : "not checked yet";
   return (
-    <svg viewBox="0 0 380 300" className="block h-auto w-full" role="img"
-      aria-label={`Your room: ${TOTAL} fake secrets in ${byKind.length} kinds. ${reached} shown as reachable.`}>
+    <svg viewBox={`0 0 380 ${H}`} className="block h-auto w-full" role="img"
+      aria-label={`Your room: ${TOTAL} fake secrets, ${label}.`}>
       <Walls title="Your room" />
-      {byKind.map(({ kind, items }) => {
-        const { x, y } = LAYOUT[kind];
-        const w = items.length * SLOT + 12;
+      {ROOM_ORDER.map((s, n) => {
+        const st = states[s.i];
+        const t = TONE[st];
+        const x = COL_X[n < ROWS ? 0 : 1];
+        const y = TOP + (n % ROWS) * ROW_H;
         return (
-          <g key={kind}>
-            <text x={x} y={y} fontSize="14" fill="var(--muted)">{KIND_LABELS[kind]}</text>
-            <rect x={x} y={y + 8} width={w} height={46} rx="5" fill="var(--card)" stroke="var(--line)" />
-            {items.map((s, j) => {
-              const st = states[s.i];
-              const cx = x + 6 + j * SLOT + SLOT / 2;
-              const cy = y + 31;
-              return (
-                <g key={s.path}>
-                  <circle cx={cx} cy={cy} r="17" fill={HALO[st]} />
-                  <g transform={`translate(${cx - 12} ${cy - 12})`} fill="none" stroke={STROKE[st]}
-                    strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                    <Icon kind={kind} />
-                  </g>
-                </g>
-              );
-            })}
+          <g key={s.path}>
+            <circle cx={x + 14} cy={y + 18} r="16" fill={t.halo} />
+            <g transform={`translate(${x + 2} ${y + 6})`} fill="none" stroke={t.stroke}
+              strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <KindIcon kind={s.kind} />
+            </g>
+            <text x={x + 38} y={y + 15} fontSize="14" fill="var(--ink)">{s.name}</text>
+            {st !== "idle" && (
+              <>
+                <StateMark state={st} x={x + 38} y={y + 34} />
+                <text x={x + 53} y={y + 34} fontSize="14" fontWeight="600" fill={t.text}>{st}</text>
+              </>
+            )}
           </g>
         );
       })}
@@ -113,27 +130,42 @@ function YourRoom({ states }: { states: IconState[] }) {
   );
 }
 
-function SpareRoom({ ready, checked }: { ready: boolean; checked: boolean }) {
-  const line = checked ? `Empty. ${SPARE_REACHED} of ${TOTAL} reachable from here.`
-    : ready ? "Empty. Nothing to take." : "Not created yet";
+function SpareRoom({ phase }: { phase: "none" | "ready" | "trying" | "tried" }) {
+  const lines = {
+    none: ["Not created yet"],
+    ready: ["Empty. Nothing to take."],
+    trying: ["Empty.", `Trying the same ${TOTAL} paths...`],
+    tried: ["Empty.", `Tried the same ${TOTAL} paths:`, `${SPARE_BLOCKED} blocked`],
+  }[phase];
+  const y0 = H / 2 - (lines.length - 1) * 12;
   return (
-    <svg viewBox="0 0 380 300" className="block h-auto w-full" role="img" aria-label={`The spare room: ${line}`}>
+    <svg viewBox={`0 0 380 ${H}`} className="block h-auto w-full" role="img"
+      aria-label={`The spare room: ${lines.join(" ")}`}>
       <Walls title="The spare room" />
-      <text x="190" y="158" textAnchor="middle" fontSize="15" fill={checked ? "var(--ok)" : "var(--muted)"}
-        fontWeight={checked ? 600 : 400}>
-        {line}
-      </text>
+      {lines.map((l, i) => (
+        <text key={l} x="190" y={y0 + i * 24} textAnchor="middle" fontSize="16"
+          fill={phase === "tried" && i === 2 ? "var(--ok)" : "var(--muted)"}
+          fontWeight={phase === "tried" && i === 2 ? 600 : 400}>{l}</text>
+      ))}
     </svg>
   );
 }
 
 // ---- recorded output panels -----------------------------------------------
 
-function Panel({ title, children, empty }: { title: string; children?: React.ReactNode; empty: string }) {
+function Panel({ title, empty, lines, footer, panelRef }: {
+  title: string; empty: string; lines: React.ReactNode[]; footer?: React.ReactNode;
+  panelRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  const body = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (body.current) body.current.scrollTop = body.current.scrollHeight; }, [lines.length, footer]);
   return (
-    <div className="mt-3 rounded-md border border-line bg-[#f3f4f0] font-mono text-[13px] leading-6">
+    <div ref={panelRef} className="scroll-mt-4 rounded-md border border-line bg-[#f3f4f0] font-mono text-[13px] leading-6">
       <div className="border-b border-line px-3 py-1.5 font-sans text-[13px] text-muted">{title}</div>
-      <div className="min-h-24 px-3 py-2">{children ?? <span className="text-muted">{empty}</span>}</div>
+      <div ref={body} tabIndex={0} role="log" aria-label={title} className="max-h-72 min-h-20 overflow-y-auto px-3 py-2 md:max-h-none">
+        {lines.length ? lines : <span className="font-sans text-muted">{empty}</span>}
+        {footer}
+      </div>
     </div>
   );
 }
@@ -160,11 +192,12 @@ export default function TwoRooms() {
   const [announce, setAnnounce] = useState("");
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const reduced = useRef(false);
+  const panels = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
 
   const summary = (step: number) =>
     step === 0 ? `${YOURS_REACHED} of ${TOTAL} fake secrets reachable from your account.`
       : step === 1 ? `Spare room created in ${acct.setup_wall_s} seconds.`
-        : `${SPARE_REACHED} of ${TOTAL} reachable from the spare room. All blocked.`;
+        : `The same ${TOTAL} paths, tried from the spare room: ${SPARE_BLOCKED} blocked.`;
 
   const finish = useCallback((step: number) => {
     if (timer.current) clearInterval(timer.current);
@@ -186,8 +219,9 @@ export default function TwoRooms() {
 
   const run = (step: number) => {
     if (timer.current) clearInterval(timer.current);
-    setShown((s) => s.map((v, i) => (i < step ? LINE_COUNTS[i] : i === step ? 0 : 0)));
+    setShown((s) => s.map((v, i) => (i < step ? LINE_COUNTS[i] : 0)));
     setDone(step);
+    panels[step].current?.scrollIntoView({ behavior: reduced.current ? "auto" : "smooth", block: "nearest" });
     if (reduced.current) return finish(step);
     setRunning(step);
     setAnnounce("");
@@ -207,10 +241,12 @@ export default function TwoRooms() {
     setAnnounce("Cleared. Start with step 1.");
   };
 
-  // "Your room" shows what was reachable from your account; it stays that way,
-  // and the spare room carries its own result.
-  const states: IconState[] = SECRETS.map((_, i) =>
-    i < shown[0] ? (YOURS[i] === "visible" ? "reached" : "blocked") : "idle");
+  // Each item in "Your room": reachable once step 1 prints its line; locked
+  // and blocked once step 3 tries the same path from the spare room.
+  const states: ItemState[] = SECRETS.map((_, i) =>
+    i < shown[2] ? (SPARE[i] === "visible" ? "reachable" : "blocked")
+      : i < shown[0] ? (YOURS[i] === "visible" ? "reachable" : "blocked") : "idle");
+  const sparePhase = shown[2] === TOTAL ? "tried" : shown[2] > 0 || running === 2 ? "trying" : done >= 2 ? "ready" : "none";
 
   return (
     <div>
@@ -231,63 +267,59 @@ export default function TwoRooms() {
         })}
       </div>
 
-      <div className="mt-6 grid gap-8 md:grid-cols-2">
-        <div>
-          <YourRoom states={states} />
-          <Panel title="Recorded in your account"
-            empty="Press step 1 to replay what was reachable from your account.">
-            {shown[0] > 0 ? (
-              <>
-                {SECRETS.slice(0, shown[0]).map((s, i) => <Line key={s.path} state={YOURS[i]} path={s.win} />)}
-                {shown[0] === TOTAL && (
-                  <div className="mt-2 font-sans text-[15px] font-semibold text-high">{YOURS_REACHED} of {TOTAL} reachable</div>
-                )}
-              </>
-            ) : undefined}
-          </Panel>
+      {/* DOM order (room, its output; room, its output; summary) reads well on phones.
+          On wider screens the grid shows both rooms, then the summary, then each output under its room. */}
+      <div className="mt-6 grid gap-x-8 gap-y-5 md:grid-cols-2">
+        <div className="order-1"><YourRoom states={states} /></div>
+        <div className="order-2 md:order-4">
+          <Panel panelRef={panels[0]} title="Recorded in your account"
+            empty="Press step 1 to replay what was reachable from your account."
+            lines={SECRETS.slice(0, shown[0]).map((s) => <Line key={s.path} state={YOURS[s.i]} path={s.win} />)}
+            footer={shown[0] === TOTAL &&
+              <div className="mt-2 font-sans text-[15px] font-semibold text-high">{YOURS_REACHED} of {TOTAL} reachable</div>} />
+        </div>
+        <div className="order-3 md:order-2"><SpareRoom phase={sparePhase} /></div>
+        <div className="order-4 space-y-4 md:order-5">
+          <Panel panelRef={panels[1]} title="Recorded while creating the spare room"
+            empty="Step 2 replays the recorded setup."
+            lines={SETUP_UNITS.slice(0, shown[1]).map((l) => <div key={l} className="mb-1">{l}</div>)}
+            footer={shown[1] === SETUP_UNITS.length &&
+              <div className="mt-2 font-sans text-[15px] font-semibold text-ink">Ready in {acct.setup_wall_s} s</div>} />
+          <Panel panelRef={panels[2]} title="Recorded in the spare room"
+            empty="Step 3 tries the same paths from the spare room."
+            lines={SECRETS.slice(0, shown[2]).map((s) => <Line key={s.path} state={SPARE[s.i]} path={s.win} />)}
+            footer={shown[2] === TOTAL &&
+              <div className="mt-2 font-sans text-[15px] font-semibold text-ok">{SPARE_REACHED} of {TOTAL} reachable</div>} />
         </div>
 
-        <div>
-          <SpareRoom ready={done >= 2} checked={shown[2] === TOTAL} />
-          <Panel title="Recorded while creating the spare room"
-            empty="Step 2 replays the recorded setup.">
-            {shown[1] > 0 ? (
-              <>
-                {SETUP_UNITS.slice(0, shown[1]).map((l) => <div key={l} className="mb-1">{l}</div>)}
-                {shown[1] === SETUP_UNITS.length && (
-                  <div className="mt-2 font-sans text-[15px] font-semibold text-ink">Ready in {acct.setup_wall_s} s</div>
-                )}
-              </>
-            ) : undefined}
-          </Panel>
-          <Panel title="Recorded in the spare room"
-            empty="Step 3 replays what was reachable from the spare room.">
-            {shown[2] > 0 ? (
-              <>
-                {SECRETS.slice(0, shown[2]).map((s, i) => <Line key={s.path} state={SPARE[i]} path={s.win} />)}
-                {shown[2] === TOTAL && (
-                  <div className="mt-2 font-sans text-[15px] font-semibold text-ok">{SPARE_REACHED} of {TOTAL} reachable</div>
-                )}
-              </>
-            ) : undefined}
-          </Panel>
+        <div className="order-5 md:order-3 md:col-span-2">
+          <div className="min-h-16 border-y border-line py-4">
+            {done === 0 && <p className="text-muted">Press step 1 to start.</p>}
+            {done >= 1 && done < 3 && (
+              <p className="text-lg font-semibold text-high">{YOURS_REACHED} of {TOTAL} reachable from your account</p>
+            )}
+            {done === 3 && (
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-3xl font-semibold sm:text-4xl">
+                    <span className="text-high">{YOURS_REACHED} reachable</span>, then{" "}
+                    <span className="text-ok">{SPARE_REACHED}</span>
+                  </p>
+                  <p className="mt-1 text-[15px] text-ok">
+                    The same {TOTAL} paths, tried from the spare room: {SPARE_BLOCKED} blocked
+                  </p>
+                </div>
+                <button type="button" onClick={reset}
+                  className="min-h-11 rounded-md border border-line bg-card px-4 text-[15px] text-ink hover:border-accent">
+                  Start again
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       <p aria-live="polite" className="sr-only">{announce}</p>
-
-      {done === 3 && (
-        <div className="mt-8 flex flex-wrap items-baseline justify-between gap-4 border-t border-line pt-6">
-          <p className="text-3xl font-semibold sm:text-5xl">
-            <span className="text-high">{YOURS_REACHED} reachable</span>, then{" "}
-            <span className="text-ok">{SPARE_REACHED}</span>
-          </p>
-          <button type="button" onClick={reset}
-            className="min-h-11 rounded-md border border-line bg-card px-4 text-[15px] text-ink hover:border-accent">
-            Start again
-          </button>
-        </div>
-      )}
     </div>
   );
 }

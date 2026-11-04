@@ -61,6 +61,25 @@ export const KIND_LABELS: Record<Kind, string> = {
   shell: "Shell history",
   env: ".env",
 };
+export const KIND_ORDER: Kind[] = ["keys", "cloud", "wallets", "browser", "ai", "shell", "env"];
+
+/** Short names for the 13 fake secrets, keyed by their path in the recorded matrix. */
+export const SHORT_NAMES: Record<string, string> = {
+  ".ssh/id_rsa": "SSH key",
+  ".aws/credentials": "AWS keys",
+  "AppData/Roaming/gcloud/application_default_credentials.json": "Google Cloud",
+  ".azure/azureProfile.json": "Azure login",
+  ".npmrc": "npm token",
+  "AppData/Roaming/GitHub CLI/hosts.yml": "GitHub token",
+  ".config/solana/id.json": "Solana wallet",
+  "AppData/Roaming/Exodus/exodus.wallet/seed.seco": "Exodus wallet",
+  ".claude/.credentials.json": "Claude Code login",
+  "AppData/Roaming/Microsoft/Windows/PowerShell/PSReadLine/ConsoleHost_history.txt": "Shell history",
+  "AppData/Local/Google/Chrome/User Data/Default/Login Data": "Chrome passwords",
+  "AppData/Local/Google/Chrome/User Data/Default/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn/000003.log":
+    "MetaMask wallet",
+  "projects/demo-app/.env": ".env file",
+};
 
 export const scan = scanDemo as {
   tool_version: string;

@@ -2,9 +2,14 @@ import Link from "next/link";
 import TwoRooms from "@/components/TwoRooms";
 import { Card, Path, RecordedNote, SectionTitle } from "@/components/ui";
 import { acct, BINANCE_URL } from "@/lib/data";
+import { doctorRun, realVideo } from "@/lib/build-data";
 
 export default function Home() {
   const leaks = acct.verify.readable_env_outside_profiles;
+  const video = realVideo();
+  const doctor = doctorRun();
+  const ready = doctor ? doctor.tools.filter((t) => t.found).length : 0;
+
   return (
     <div>
       <section className="max-w-3xl space-y-5">
@@ -23,16 +28,16 @@ export default function Home() {
         <RecordedNote />
       </section>
 
-      <section aria-labelledby="video-title">
-        <SectionTitle id="video-title">The demo in 3 minutes</SectionTitle>
-        <video controls preload="none" playsInline poster="/video/poster.jpg" width={1280} height={720}
-          className="h-auto w-full rounded-md border border-line bg-card">
-          <source src="/video/spare-room-walkthrough.mp4" type="video/mp4" />
-          <track kind="captions" src="/video/spare-room-walkthrough.vtt" srcLang="en" label="English" />
-          Your browser cannot play this video. It shows the site and its recorded results with on-screen captions.
-        </video>
-        <p className="mt-2 text-sm text-muted">No sound; the captions are on screen. Recorded from an earlier layout of this site.</p>
-      </section>
+      {video && (
+        <section aria-labelledby="video-title">
+          <SectionTitle id="video-title">See the tool run</SectionTitle>
+          <video controls preload="metadata" playsInline className="h-auto w-full rounded-md border border-line bg-card">
+            <source src={video.src} type="video/mp4" />
+            {video.captions && <track kind="captions" src={video.captions} srcLang="en" label="English" />}
+            Your browser cannot play this video.
+          </video>
+        </section>
+      )}
 
       <section aria-labelledby="rooms-title">
         <SectionTitle id="rooms-title">Two rooms</SectionTitle>
@@ -65,7 +70,57 @@ export default function Home() {
         </Card>
       </section>
 
-      <p className="mt-12">
+      {doctor && (
+        <section aria-labelledby="tools-title">
+          <SectionTitle id="tools-title">Can I do my coding test in the spare room?</SectionTitle>
+          <p className="mb-4 max-w-3xl">
+            Recorded inside the spare room on {doctor.ran_at.slice(0, 10)}: {ready} of {doctor.tools.length} coding
+            tools were available there. Anything installed only in your own account is not, so install it for all users.
+          </p>
+          <div className="rounded-md border border-line bg-card">
+            <table className="w-full text-[15px]">
+              <caption className="sr-only">Coding tools found inside the spare room</caption>
+              <thead>
+                <tr className="border-b border-line text-left">
+                  <th scope="col" className="px-3 py-2.5 font-medium sm:px-4">Tool</th>
+                  <th scope="col" className="px-3 py-2.5 font-medium sm:px-4">In the spare room</th>
+                </tr>
+              </thead>
+              <tbody>
+                {doctor.tools.map((t) => (
+                  <tr key={t.name} className="border-b border-line align-top last:border-0">
+                    <th scope="row" className="w-36 px-3 py-2.5 text-left font-medium sm:w-56 sm:px-4">{t.label}</th>
+                    <td className="px-3 py-2.5 sm:px-4">
+                      {t.found ? (
+                        <span className="text-ok">Available{t.version ? `, ${t.version}` : ""}</span>
+                      ) : (
+                        <>
+                          <span className="font-medium text-high">Missing.</span>{" "}
+                          {t.note && <span className="text-muted">{t.note} </span>}
+                          <span className="mt-1 block">{t.install}</span>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      <section aria-labelledby="download-title">
+        <SectionTitle id="download-title">Download</SectionTitle>
+        <p className="max-w-3xl">
+          One Windows file, no installer. Start with the safe demo mode, which touches only a fake laptop bundled
+          inside it.
+        </p>
+        <p className="mt-2">
+          <Link href="/download/" className="inline-flex min-h-11 items-center font-medium">Download Spare Room</Link>
+        </p>
+      </section>
+
+      <p className="mt-10">
         <Link href="/results/" className="inline-flex min-h-11 items-center text-lg font-medium">
           See the full results
         </Link>

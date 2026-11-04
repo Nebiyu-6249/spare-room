@@ -57,6 +57,8 @@ def outside_profile_hint(path: str) -> str:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", default=r"C:\SpareRoomShared\results")
+    ap.add_argument("--release-sums", metavar="FILE",
+                    help="SHA256SUMS.txt of a newly published release, to update the Download page's checksum")
     args = ap.parse_args(argv)
     res = Path(args.results)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -105,12 +107,26 @@ def main(argv=None) -> int:
     # 5. Coverage and meta.
     cov = [dict(item.to_dict(), note=row[3]) for item, row in zip(coverage.items(), coverage.ROWS)]
     (OUT / "coverage.json").write_text(json.dumps(cov, indent=2), encoding="utf-8")
+    # The Download page must show the checksum of the *published* release, not
+    # whatever is in dist/ right now: keep the current one unless the sums file
+    # of a new release is passed explicitly.
+    old_meta = OUT / "meta.json"
+    old_sha = json.loads(old_meta.read_text(encoding="utf-8")).get("sha256") if old_meta.exists() else None
     meta = {"tool_version": TOOL_VERSION, "recorded_on": normal["ran_at"][:10],
             "machine": "Windows 11 Home laptop (test machine)"}
-    sums = ROOT / "dist" / "SHA256SUMS.txt"
-    if sums.exists():
-        meta["sha256"] = sums.read_text(encoding="utf-8").split()[0]
+    if args.release_sums:
+        meta["sha256"] = Path(args.release_sums).read_text(encoding="utf-8").split()[0]
+    elif old_sha:
+        meta["sha256"] = old_sha
     (OUT / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+
+    # 6. doctor, as recorded inside the spare room (optional). Paths are dropped.
+    doc = res / "doctor.json"
+    if doc.exists():
+        d = _load(doc)
+        keep = ("name", "label", "found", "scope", "version", "note", "install")
+        out = {"ran_at": d["ran_at"], "tools": [{k: t.get(k) for k in keep} for t in d["tools"]]}
+        (OUT / "doctor.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
 
     # Guard: the real user name never reaches the published data.
     user = os.environ.get("USERNAME", "").lower()

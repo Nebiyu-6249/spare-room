@@ -4,6 +4,7 @@ scan, report  - what code running as you could reach (no admin)
 setup         - create the standard interview account (admin, through UAC)
 finish-setup  - run once inside the interview account: safer editor/npm/AI defaults, then verify
 verify        - run inside the interview account: what is still reachable from there
+doctor        - run inside the interview account: which coding tools are available there
 remove-account- remove the interview account (admin, through UAC; confirms first)
 """
 
@@ -227,6 +228,16 @@ def cmd_probe(args) -> int:
     return probe.main(args.probe_args)
 
 
+def cmd_doctor(args) -> int:
+    from . import doctor
+    results = doctor.check()
+    print(f"{APP_NAME} doctor: coding tools in this account\n")
+    doctor.print_report(results)
+    if args.json:
+        _write_json(args.json, doctor.report(results))
+    return 0
+
+
 # --- remove-account ----------------------------------------------------------
 
 def cmd_remove_account(args, elevate=accounts.run_elevated) -> int:
@@ -311,6 +322,10 @@ def build_parser() -> argparse.ArgumentParser:
     ve.add_argument("--only-profile", metavar="NAME", action="append",
                     help="check only this other profile folder (repeatable); others are left alone")
     ve.set_defaults(func=cmd_verify)
+
+    dr = sub.add_parser("doctor", help="inside the interview account: are node, npm, python, git and code available?")
+    dr.add_argument("--json", metavar="PATH", help="write the result as JSON")
+    dr.set_defaults(func=cmd_doctor)
 
     pr = sub.add_parser("probe", help="the trap probe: check whether listed paths are reachable",
                         add_help=False)

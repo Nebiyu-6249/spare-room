@@ -22,6 +22,7 @@ from typing import Optional, Tuple
 # --- Source references (public reports / official docs) ----------------------
 
 SRC_UNIT42 = "https://unit42.paloaltonetworks.com/north-korean-threat-actors-lure-tech-job-seekers-as-fake-recruiters/"
+SRC_UNIT42_2023 = "https://unit42.paloaltonetworks.com/two-campaigns-by-north-korea-bad-actors-target-job-hunters/"
 SRC_GITGUARDIAN = "https://blog.gitguardian.com/the-nx-s1ngularity-attack-inside-the-credential-leak/"
 SRC_STEPSECURITY = "https://www.stepsecurity.io/blog/supply-chain-security-alert-popular-nx-build-system-package-compromised-with-data-stealing-malware"
 SRC_SHAIHULUD = "https://attack.mitre.org/software/S9008/"

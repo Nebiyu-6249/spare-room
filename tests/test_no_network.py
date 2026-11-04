@@ -18,7 +18,7 @@ PKG = Path(spareroom.__file__).resolve().parent
 
 # The trio the criterion names, plus the modules they import from the package.
 OFFLINE_MODULES = ["scanner.py", "probe.py", "report.py", "locations.py", "traps.py", "models.py",
-                   "verify.py", "hardening.py", "accounts.py", "access.py"]
+                   "verify.py", "hardening.py", "accounts.py", "access.py", "coverage.py"]
 
 FORBIDDEN = {
     "socket", "ssl", "http", "urllib", "urllib2", "urllib3", "ftplib", "smtplib",

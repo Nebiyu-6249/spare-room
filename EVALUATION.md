@@ -77,7 +77,7 @@ Target (criterion 3): under 5 minutes in total.
 
 | Run | Time | Locations checked | Notes |
 |---|---|---|---|
-| `scan --demo` (bundled fake laptop) | ~0.1 s | 165 | dev machine |
+| `scan --demo` (bundled fake laptop) | ~0.05 s | 159 | dev machine; same result from the packaged exe |
 | `scan` (real, dev machine, one drive) | 8.4 s | 158 | full C: walk for `.env` finished inside the 50 s budget |
 | `verify` (real, dev machine, not elevated) | 4.1 s | 896 | includes other profiles under C:\Users |
 

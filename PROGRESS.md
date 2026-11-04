@@ -142,5 +142,33 @@ this. Reported to the user; nothing was changed.
   machine; missing hardening is flagged.
 - The no-network test now also covers verify, hardening and accounts.
 
-## Next: Phase 4 - all traps, twin-run harness, coverage table, EVALUATION.md.
-   First: run docs/VM_TEST_PHASE3.md on a VM and record the times.
+## Phase 4 - traps, twin run, coverage, EVALUATION.md (PARTLY DONE)
+
+Done: the parts that only check, map or report.
+
+- **Readability from permissions** (`spareroom/access.py`). On Windows it reads
+  the file's security descriptor and asks AccessCheck whether this process's
+  own token may read it. Data is never read. The probe, verify and the `.env`
+  hunt use it. Tested with a deny-read ACE, where os.access still says
+  readable. Re-checked on the dev machine: the other profile's browser stores
+  are genuinely readable from this account.
+- **Coverage table** (`spareroom/coverage.py`): 36 documented targets from
+  Unit 42 (2023 and 2024), GitGuardian, StepSecurity, MITRE S9008, Socket and
+  MITRE T1552.003 / T1555.003. 25 are covered by a check; each of the 11 that
+  are not gives its reason. Tests check that every check id exists, every
+  source is a cited URL, and the table in EVALUATION.md is current.
+- **EVALUATION.md outline**: the generated coverage table, scan timings from
+  the dev machine, limits, and placeholders for the trap matrix and VM setup
+  times.
+
+Not started, waiting on a decision with the user:
+- The **trap fixtures** for npm preinstall, the code after 1,000 blank lines,
+  Python setup.py and the Claude Code startup hook. The VS Code trap from
+  phase 1 exists.
+- The **twin-run harness**, and in particular how the fake secrets get into
+  the normal account for the test. Two attempts to write this were stopped by
+  a safety check, so the approach is being agreed first.
+
+Still pending from phase 3: run docs/VM_TEST_PHASE3.md on a VM and record the times.
+
+Tests: 86 passing.

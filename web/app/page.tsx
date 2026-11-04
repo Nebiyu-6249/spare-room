@@ -4,6 +4,24 @@ import { Card, Path, RecordedNote, SectionTitle } from "@/components/ui";
 import { acct, BINANCE_URL } from "@/lib/data";
 import { doctorRun, realVideo } from "@/lib/build-data";
 
+/** Install advice with any winget command pulled out onto its own unbroken line. */
+function InstallAdvice({ text }: { text: string }) {
+  const m = text.match(/winget install [^,]*?--scope machine/);
+  if (!m || m.index === undefined) return <span className="mt-1 block">{text}</span>;
+  const before = text.slice(0, m.index).replace(/[:,]?\s*$/, "");
+  const after = text.slice(m.index + m[0].length).replace(/^[\s,.]*(or\b)?/, (s, or) => (or ? "Or" : ""));
+  return (
+    <span className="mt-1 block">
+      {before}:
+      <code tabIndex={0}
+        className="my-1.5 block overflow-x-auto whitespace-nowrap rounded border border-line bg-paper px-2 py-1 font-mono text-[13px]">
+        {m[0]}
+      </code>
+      {after.trim() && <span className="block">{after.trim()}</span>}
+    </span>
+  );
+}
+
 export default function Home() {
   const leaks = acct.verify.readable_env_outside_profiles;
   const video = realVideo();
@@ -78,7 +96,7 @@ export default function Home() {
             tools were available there. Anything installed only in your own account is not, so install it for all users.
           </p>
           <div className="rounded-md border border-line bg-card">
-            <table className="w-full text-[15px]">
+            <table className="w-full table-fixed text-[15px]">
               <caption className="sr-only">Coding tools found inside the spare room</caption>
               <thead>
                 <tr className="border-b border-line text-left">
@@ -97,7 +115,7 @@ export default function Home() {
                         <>
                           <span className="font-medium text-high">Missing.</span>{" "}
                           {t.note && <span className="text-muted">{t.note} </span>}
-                          <span className="mt-1 block">{t.install}</span>
+                          <InstallAdvice text={t.install} />
                         </>
                       )}
                     </td>

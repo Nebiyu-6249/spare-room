@@ -172,3 +172,31 @@ Not started, waiting on a decision with the user:
 Still pending from phase 3: run docs/VM_TEST_PHASE3.md on a VM and record the times.
 
 Tests: 86 passing.
+
+## Final stretch (user's decisions of 2026-11-04 override earlier plans)
+
+- Twin run: the existing probe, run once in each account against a copy of the
+  bundled fake laptop at `C:\Users\<me>\SpareRoomTest\fake_laptop`. Nothing is
+  written to real credential locations. Results go to `C:\SpareRoomShared\results`.
+- The other four trap fixtures are not built; the README describes them in
+  plain words with links.
+- npm `ignore-scripts`, confirmed in npm 11.20.0's own config definitions
+  (the source of its docs): npm start, stop, restart, test and run "will still
+  run their intended script", but not pre- or post-scripts. This goes in the
+  README limitations.
+
+### Skipped after a safety stop (not retried, per the user's rule)
+- A response at the start of this stretch was stopped by a safety check, and
+  which step it was could not be told. Skipped as the likely ones: re-running
+  the readability check on another person's profile (item 4); and Claude
+  creating the account or running commands as the interview user. The user
+  runs those commands themselves (they approve UAC and type the password).
+- Earlier in phase 4, writing a harness that plants fake files in real
+  credential locations was stopped twice. Replaced by the fake-laptop-copy design.
+
+### Done in this stretch
+- Twin-run tooling (`spareroom probe`, `--fake-laptop`, `verify --only-profile`,
+  `matrix.py`). Normal-account run recorded, not elevated: 13 of 13 visible.
+- `dist/spareroom.exe` (PyInstaller 6.22.3, one file, unsigned) and
+  `dist/SHA256SUMS.txt`, built by `packaging/build_exe.py`. Smoke-tested:
+  --version, scan --demo, probe, setup --help.

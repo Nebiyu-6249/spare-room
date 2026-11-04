@@ -60,13 +60,19 @@ def other_profiles(users_root: Path, own_home: Path) -> List[Path]:
     return out
 
 
-def cross_profile_findings(users_root: Path, own_home: Path) -> Tuple[List[Finding], int, int]:
-    """Return (findings, locations_checked, blocked_count)."""
+def cross_profile_findings(users_root: Path, own_home: Path,
+                           only_profiles=None) -> Tuple[List[Finding], int, int]:
+    """Return (findings, locations_checked, blocked_count). With only_profiles,
+    look only at those profile folder names and leave everyone else's alone."""
     findings: List[Finding] = []
     checked = 0
     blocked_total = 0
     targets = home_relative_targets()
-    for profile in other_profiles(users_root, own_home):
+    profiles = other_profiles(users_root, own_home)
+    if only_profiles is not None:
+        wanted = {n.lower() for n in only_profiles}
+        profiles = [p for p in profiles if p.name.lower() in wanted]
+    for profile in profiles:
         paths = [str(profile.joinpath(*rel)) for _, rel in targets]
         checked += len(paths)
         visible, blocked = check_paths(paths)
@@ -93,7 +99,8 @@ def settings_findings(home: Path) -> List[Finding]:
 
 
 def verify(home: Path = None, drives: List[Path] = None, users_root: Path = None,
-           account_label: str = "", budget_seconds: float = 50.0) -> Tuple[ScanReport, int]:
+           account_label: str = "", budget_seconds: float = 50.0,
+           only_profiles=None) -> Tuple[ScanReport, int]:
     """Return (report, blocked_count). blocked_count is how many known secret
     locations in other profiles were correctly out of reach."""
     if home is None or drives is None:
@@ -104,7 +111,7 @@ def verify(home: Path = None, drives: List[Path] = None, users_root: Path = None
     state = {}
 
     def extra():
-        xf, xc, blocked = cross_profile_findings(users_root, home)
+        xf, xc, blocked = cross_profile_findings(users_root, home, only_profiles)
         state["blocked"] = blocked
         sf = settings_findings(home)
         return xf + sf, xc + 3

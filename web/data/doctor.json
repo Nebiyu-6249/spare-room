@@ -1,0 +1,50 @@
+{
+  "ran_at": "2026-11-04T22:33:02+04:00",
+  "tools": [
+    {
+      "name": "node",
+      "label": "Node.js",
+      "found": true,
+      "scope": "all users",
+      "version": "v26.13.0",
+      "note": "",
+      "install": ""
+    },
+    {
+      "name": "npm",
+      "label": "npm (comes with Node.js)",
+      "found": true,
+      "scope": "all users",
+      "version": "11.20.0",
+      "note": "",
+      "install": ""
+    },
+    {
+      "name": "python",
+      "label": "Python",
+      "found": false,
+      "scope": null,
+      "version": null,
+      "note": "Only the Microsoft Store shortcut is present; Python itself is not installed.",
+      "install": "Install Python for all users: winget install --id Python.Python.3.12 -e --scope machine, or run the python.org full installer, choose Customize installation and pick the all-users option."
+    },
+    {
+      "name": "git",
+      "label": "Git",
+      "found": true,
+      "scope": "all users",
+      "version": "git version 2.56.0.windows.4",
+      "note": "",
+      "install": ""
+    },
+    {
+      "name": "code",
+      "label": "VS Code",
+      "found": false,
+      "scope": null,
+      "version": null,
+      "note": "A copy installed only in another account (for example VS Code's User setup under %LOCALAPPDATA%) is not available here.",
+      "install": "Install VS Code with the System setup (not the User setup) from code.visualstudio.com, or: winget install --id Microsoft.VisualStudioCode -e --scope machine."
+    }
+  ]
+}

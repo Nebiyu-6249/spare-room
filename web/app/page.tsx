@@ -1,75 +1,75 @@
 import Link from "next/link";
-import { BigNumber, Card, RecordedNote, SeverityTag } from "@/components/ui";
-import { acct, APP_NAME, CATEGORY_LABELS, countBy, scan, twin } from "@/lib/data";
+import TwoRooms from "@/components/TwoRooms";
+import { Card, Path, RecordedNote, SectionTitle } from "@/components/ui";
+import { acct, BINANCE_URL } from "@/lib/data";
 
 export default function Home() {
-  const normal = twin.normal.visible.length;
-  const interview = twin.interview.visible.length;
-  const total = twin.matrix.secrets.length;
-  const bySev = countBy(scan.findings, (f) => f.severity);
-  const byCat = countBy(scan.findings, (f) => f.category);
-
+  const leaks = acct.verify.readable_env_outside_profiles;
   return (
-    <div className="space-y-10">
-      <section className="space-y-4">
-        <h1 className="text-3xl font-semibold leading-tight sm:text-4xl">{APP_NAME}</h1>
-        <p className="max-w-2xl text-lg">
-          A Windows tool for developers about to run code from a recruiter or client. It lists what that code
-          could reach on your laptop today, creates a separate standard account for running it, and checks the
-          difference between the two.
+    <div>
+      <section className="max-w-3xl space-y-5">
+        <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
+          Run the recruiter&apos;s code in a room with nothing in it.
+        </h1>
+        <p className="text-lg sm:text-xl">
+          Spare Room shows what code from a recruiter or client could reach on your Windows laptop, then sets up a
+          separate account, the spare room, where it reaches nothing that matters.
+        </p>
+        <p className="text-base">
+          In Binance&apos;s account of its $6.34B loss, one step was an engineer downloading a recruiter&apos;s coding
+          &quot;assignment&quot; onto his work computer.{" "}
+          <a href={BINANCE_URL} rel="noreferrer">Read the report</a>.
         </p>
         <RecordedNote />
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <BigNumber value={`${normal} of ${total}`} label="fake secrets reachable from the normal account" tone="high" />
-        </Card>
-        <Card>
-          <BigNumber value={`${interview} of ${total}`} label="reachable from the interview account" tone="ok" />
-        </Card>
-        <Card>
-          <BigNumber value={`${acct.setup_wall_s} s`} label="to create the interview account" />
-        </Card>
+      <section aria-labelledby="video-title">
+        <SectionTitle id="video-title">The demo in 3 minutes</SectionTitle>
+        <video controls preload="none" playsInline poster="/video/poster.jpg" width={1280} height={720}
+          className="h-auto w-full rounded-md border border-line bg-card">
+          <source src="/video/spare-room-walkthrough.mp4" type="video/mp4" />
+          <track kind="captions" src="/video/spare-room-walkthrough.vtt" srcLang="en" label="English" />
+          Your browser cannot play this video. It shows the site and its recorded results with on-screen captions.
+        </video>
+        <p className="mt-2 text-sm text-muted">No sound; the captions are on screen. Recorded from an earlier layout of this site.</p>
       </section>
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">The scan of the bundled fake laptop</h2>
+      <section aria-labelledby="rooms-title">
+        <SectionTitle id="rooms-title">Two rooms</SectionTitle>
+        <p className="mb-6 max-w-3xl">
+          Your room holds 13 fake secrets of the kinds attackers look for. The spare room is a separate Windows account
+          with nothing in it. Each step replays what the real tool recorded.
+        </p>
+        <TwoRooms />
+      </section>
+
+      <section aria-labelledby="gaps-title">
+        <SectionTitle id="gaps-title">What still gets through</SectionTitle>
         <Card>
-          <p>
-            <span className="text-2xl font-semibold tabular-nums">{scan.findings.length}</span> things code running
-            as you could reach, found in {scan.locations_checked} places checked.
-          </p>
-          <p className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
-            <span className="inline-flex items-center gap-2"><SeverityTag level="high" /> {bySev.high ?? 0}</span>
-            <span className="inline-flex items-center gap-2"><SeverityTag level="medium" /> {bySev.medium ?? 0}</span>
-            <span className="inline-flex items-center gap-2"><SeverityTag level="info" /> {bySev.info ?? 0}</span>
-          </p>
-          <ul className="mt-4 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
-            {Object.entries(CATEGORY_LABELS).map(([k, label]) => (
-              <li key={k} className="flex justify-between border-b border-line py-1">
-                <span>{label}</span>
-                <span className="tabular-nums text-muted">{byCat[k] ?? 0}</span>
-              </li>
-            ))}
+          <ul className="space-y-4">
+            <li>
+              <span className="font-medium">Files every account can read.</span>{" "}
+              {leaks.length > 0 ? (
+                <>Checked from inside the spare room, this file outside any account folder was still readable:{" "}
+                  {leaks.map((p) => <Path key={p}>{p}</Path>)}. A separate account cannot protect it; move it into your
+                  own folder.</>
+              ) : (
+                <>Checked from inside the spare room, no such file was found.</>
+              )}
+            </li>
+            <li>
+              <span className="font-medium">Anything a separate account cannot stop.</span> It is weaker than a virtual
+              machine: malware with administrator rights, and your network or VPN, can still be reached.
+            </li>
           </ul>
         </Card>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
-        <Link href="/results/" className="rounded-md border border-line bg-card p-5 no-underline hover:border-accent">
-          <span className="block font-medium text-ink">Results</span>
-          <span className="text-sm text-muted">Both accounts side by side, setup time, coverage of public reports.</span>
+      <p className="mt-12">
+        <Link href="/results/" className="inline-flex min-h-11 items-center text-lg font-medium">
+          See the full results
         </Link>
-        <Link href="/privacy/" className="rounded-md border border-line bg-card p-5 no-underline hover:border-accent">
-          <span className="block font-medium text-ink">Privacy</span>
-          <span className="text-sm text-muted">Exactly what the tool reads, and what it never does.</span>
-        </Link>
-        <Link href="/download/" className="rounded-md border border-line bg-card p-5 no-underline hover:border-accent">
-          <span className="block font-medium text-ink">Download</span>
-          <span className="text-sm text-muted">The Windows exe, its checksum, and how to try the safe demo mode.</span>
-        </Link>
-      </section>
+      </p>
     </div>
   );
 }

@@ -1,0 +1,49 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Spare Room: run the recruiter's code in a room with nothing in it.
+
+2
+00:00:04.500 --> 00:00:10.500
+Binance's $6.34B loss involved an engineer running a recruiter's coding assignment on his work computer.
+
+3
+00:00:10.500 --> 00:00:13.426
+Your account: the one you use every day, with your keys, logins and wallets.
+
+4
+00:00:13.426 --> 00:00:21.104
+Spare Room's scan of a bundled fake laptop: 25 things code running as you could reach. It never reads their contents.
+
+5
+00:00:21.104 --> 00:00:28.351
+The same results as a local report. It loads nothing from the internet.
+
+6
+00:00:28.351 --> 00:00:36.845
+The check a stranger's code could make, against 13 fake secrets in your folder: all 13 reachable.
+
+7
+00:00:36.845 --> 00:00:42.845
+Creating the spare room took 29.6 s (recorded earlier; Windows does not allow its permission prompt to be screen-recorded).
+
+8
+00:00:42.845 --> 00:00:45.760
+The spare room: a separate, standard Windows account with nothing in it.
+
+9
+00:00:45.760 --> 00:00:54.152
+Can the coding test run here? Node.js, npm and Git, yes. Python and VS Code need installing for all users.
+
+10
+00:00:54.152 --> 00:01:02.349
+The same 13 paths, tried from the spare room: 13 blocked.
+
+11
+00:01:02.349 --> 00:01:10.928
+Checked from inside: none of the 12 secret locations in your account are readable. One .env outside any account folder still is.
+
+12
+00:01:10.928 --> 00:01:17.428
+13 reachable, then 0. Offline. Never reads secret contents. Weaker than a virtual machine. spare-room-demo.netlify.app

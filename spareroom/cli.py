@@ -107,7 +107,7 @@ def cmd_setup(args, elevate=accounts.run_elevated, exists=accounts.user_exists) 
             name = _ask(f"User name for the interview account [{accounts.DEFAULT_USERNAME}]: ").strip() \
                 or accounts.DEFAULT_USERNAME
         try:
-            name = accounts.validate_username(name)
+            name = accounts.validate_username(name, new=True)
             if exists(name):
                 raise accounts.AccountError(f"An account named '{name}' already exists.")
             break

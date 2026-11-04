@@ -60,6 +60,43 @@ def test_refuses_current_account(monkeypatch):
         accounts.validate_username("alex")
 
 
+def test_computer_name_refused_only_for_new_accounts(monkeypatch):
+    monkeypatch.setenv("USERNAME", "owner")
+    monkeypatch.setenv("COMPUTERNAME", "DESKTOP1")
+    with pytest.raises(AccountError):
+        accounts.validate_username("desktop1", new=True)
+    assert accounts.validate_username("desktop1") == "desktop1"   # removing one is still allowed
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows ACLs")
+def test_result_dir_inherits_acl_unlike_mkdtemp():
+    # mkdtemp's 0o700 folder has a protected, owner-only DACL; a file the
+    # elevated step writes there is owned by Administrators and unreadable here.
+    d = accounts.result_dir()
+    try:
+        out = subprocess.run(["icacls", str(d)], capture_output=True, text=True).stdout
+        assert "(I)" in out, out
+    finally:
+        d.rmdir()
+
+
+def test_unreadable_result_is_a_clear_error(monkeypatch):
+    def elevate(script):
+        with open(_result_path(script), "w") as fh:
+            fh.write("{}")
+
+    real = accounts.Path.read_text
+
+    def read_text(self, *a, **k):
+        if self.name == "result.json":
+            raise PermissionError(13, "Permission denied")
+        return real(self, *a, **k)
+
+    monkeypatch.setattr(accounts.Path, "read_text", read_text)
+    with pytest.raises(AccountError, match="could not be read"):
+        accounts.create_account("interview", elevate=elevate)
+
+
 def test_ps_quote_doubles_single_quotes():
     assert accounts.ps_quote("O'Brien") == "'O''Brien'"
 

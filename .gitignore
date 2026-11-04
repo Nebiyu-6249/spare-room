@@ -12,3 +12,6 @@ trap-result.json
 
 # Netlify CLI local state
 .netlify/
+
+# Raw screen recordings (edited into web/public/real-demo.mp4)
+demo-video/raw/

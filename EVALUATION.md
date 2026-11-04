@@ -124,6 +124,22 @@ profile, so nobody else's is examined.
 The `.env` finding is criterion 5 working as intended: a separate account does
 not protect files that every user can read.
 
+### Coding tools inside the interview account (`doctor`, 2026-11-04)
+
+Recorded with `spareroom doctor` run inside the interview account (v0.1.1).
+
+| Tool | In the interview account | Why |
+|---|---|---|
+| Node.js | available, v26.13.0 | installed for all users |
+| npm | available, 11.20.0 | installed with Node.js, for all users |
+| Git | available, 2.56.0.windows.4 | installed for all users |
+| Python | **missing** | installed only in the normal account; the interview account has only the Microsoft Store shortcut |
+| VS Code | **missing** | installed only in the normal account (User setup) |
+
+So a Node-based assignment can be done in the interview account as the machine
+stands; a Python one, or one that needs VS Code, needs those installed for all
+users first. `doctor` prints the all-users install route for each.
+
 ## 5. Scan timing
 
 | Run | Time | Locations checked | Notes |

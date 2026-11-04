@@ -18,7 +18,8 @@ Sources:
   https://unit42.paloaltonetworks.com/north-korean-threat-actors-lure-tech-job-seekers-as-fake-recruiters/
 
 ## What this fixture does instead
-The `tasks.json` here runs Spare Room's probe against the bundled fake laptop:
+The `tasks.json` here runs Spare Room's probe against the bundled fake laptop,
+from the repository root two folders up (so it needs this repo and Python 3.12):
 
     python -m spareroom.probe --demo --trap-id vscode_task --trigger "folderOpen" --out trap-result.json
 

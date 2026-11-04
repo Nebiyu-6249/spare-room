@@ -113,13 +113,20 @@ Run notes, for honesty:
 `verify --only-profile <normal account>` checks only the normal account's
 profile, so nobody else's is examined.
 
-| Result | Value |
+From v0.1.2, verify reports in three labelled groups, in this order. Only the
+first two count as things stranger code could take from the interview account.
+
+| Group | Result |
 |---|---|
-| Known secret locations present in the normal account's profile | 12 |
-| Of those, readable from the interview account | **0** (all 12: access denied) |
-| `.env` files readable from the interview account outside any profile | 1, at `C:\dev\<project>\.env` (readable by every user; reported, not changed) |
-| Hardening missing in the interview account | none |
+| Your other accounts | **12 of 12** known secret locations in the normal account's profile out of reach (access denied), 0 readable |
+| Readable by every account | 1: `C:\dev\<project>\.env`, outside any account folder, readable by every user (reported, not changed) |
+| This spare room's own files (a new account, nothing of yours) | its own new Edge profile and settings files, listed as info only |
+| Not yet applied in this account | nothing (the hardening was in place) |
 | Run time / locations checked | 0.17 s / 308 |
+
+Headline from the interview account: 1 thing stranger code could take (the
+`.env`). Before v0.1.2 the room's own new Edge files were counted as high and
+mixed in with it, which overstated the risk.
 
 The `.env` finding is criterion 5 working as intended: a separate account does
 not protect files that every user can read.

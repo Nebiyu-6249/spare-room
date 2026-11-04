@@ -271,6 +271,25 @@ _SIMPLE_DISPATCH = {
 }
 
 
+def fake_laptop_label(path: str, home, base) -> str:
+    """How a fake-laptop path is shown to people: <fake laptop>\\.ssh\\id_rsa for its
+    home folder, <fake laptop D:>\\work\\x for its other drives. Never the folder it
+    happens to be unpacked in (for the exe, a temporary _MEI folder)."""
+    p, h, b = (os.path.normcase(str(x)) for x in (path, home, base))
+    if p.startswith(h + os.sep):
+        return "<fake laptop>" + os.sep + str(path)[len(str(home)) + 1:]
+    if p.startswith(b + os.sep):
+        drive, _, rest = str(path)[len(str(base)) + 1:].partition(os.sep)
+        return f"<fake laptop {drive}:>" + os.sep + rest
+    return str(path)
+
+
+def shown_path(report: ScanReport, path: str) -> str:
+    """The path as printed or put in the HTML report (JSON keeps the real path)."""
+    d = getattr(report, "display", None)
+    return fake_laptop_label(path, d["home"], d["base"]) if d else path
+
+
 def scan(mode: str = "demo", demo_base: Path = None, account_label: str = "",
          budget_seconds: float = 50.0) -> ScanReport:
     if mode == "demo":
@@ -278,8 +297,11 @@ def scan(mode: str = "demo", demo_base: Path = None, account_label: str = "",
         home, drives = demo_roots(base)
     else:
         home, drives = real_roots()
-    return scan_roots(home, drives, mode=mode, account_label=account_label,
-                      budget_seconds=budget_seconds)
+    report = scan_roots(home, drives, mode=mode, account_label=account_label,
+                        budget_seconds=budget_seconds)
+    if mode == "demo":
+        report.display = {"home": str(home), "base": str(base)}
+    return report
 
 
 def scan_roots(home: Path, drives: List[Path], mode: str = "real", account_label: str = "",

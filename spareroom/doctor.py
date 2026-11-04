@@ -19,6 +19,7 @@ import datetime
 import os
 import shutil
 import subprocess
+import textwrap
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Callable, List, Optional
@@ -131,9 +132,10 @@ def print_report(results: List[ToolStatus]) -> None:
             print(f"  available  {r.label:<26} {r.version or ''}{where}")
         else:
             print(f"  missing    {r.label}")
-            if r.note:
-                print(f"             {r.note}")
-            print(f"             {r.install}")
+            # Wrap at word boundaries so a console never breaks a command mid-word.
+            pad = " " * 13
+            for text in ([r.note] if r.note else []) + [r.install]:
+                print(textwrap.fill(text, 100, initial_indent=pad, subsequent_indent=pad))
     if ready < len(results):
         print("\nInstalling for all users needs administrator rights: run these from your own account,")
         print("then sign in to this one again.")

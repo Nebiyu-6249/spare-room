@@ -253,3 +253,12 @@ Tests: 86 passing.
   confirmed window-only capture at 150% display scaling (needs
   __COMPAT_LAYER=HighDpiAware for ffmpeg).
 - EVALUATION.md now has the doctor result from the interview account.
+- Recorded on 2026-11-04 by the user running tools/record_demo.ps1 once.
+  Edited by tools/video/edit.mjs into web/public/real-demo.mp4 (1:17.5,
+  1920x1080 H.264, 30 fps, captions burned in) and web/public/real-demo.vtt.
+  The report window was re-recorded by Claude (no password involved) after the
+  first take came out black: browser windows are captured by their screen
+  rectangle, because gdigrab cannot read GPU-drawn windows.
+- The verify step's real project folder name is covered with <project> on
+  every frame where it appears; the cut points are calibrated from the frames,
+  so no frame shows it. Checked frame by frame at the boundaries, and every 5 s.

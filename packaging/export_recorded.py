@@ -107,6 +107,9 @@ def main(argv=None) -> int:
     (OUT / "coverage.json").write_text(json.dumps(cov, indent=2), encoding="utf-8")
     meta = {"tool_version": TOOL_VERSION, "recorded_on": normal["ran_at"][:10],
             "machine": "Windows 11 Home laptop (test machine)"}
+    sums = ROOT / "dist" / "SHA256SUMS.txt"
+    if sums.exists():
+        meta["sha256"] = sums.read_text(encoding="utf-8").split()[0]
     (OUT / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
     # Guard: the real user name never reaches the published data.

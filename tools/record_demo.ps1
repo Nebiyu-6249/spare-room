@@ -156,7 +156,10 @@ function Stop-Clip($clip) {
 # Stop recording is pressed. Returns 'continue', 'stop', or 'closed' (the
 # watched window went away). With -Watch, it checks five times a second that
 # the window being recorded still exists, so a closed window is not filmed past.
-function Show-Prompt([string]$heading, [string]$text, [int]$autoCloseSeconds = 0, [IntPtr]$Watch = [IntPtr]::Zero) {
+# With -DoneFile, it continues by itself -DoneDelay seconds after that file
+# appears (the trap task writes one when it finishes).
+function Show-Prompt([string]$heading, [string]$text, [int]$autoCloseSeconds = 0, [IntPtr]$Watch = [IntPtr]::Zero,
+                     [string]$DoneFile = '', [double]$DoneDelay = 6) {
     Note "prompt: $heading"
     $f = New-Object Windows.Forms.Form
     $f.Text = 'Spare Room recording'; $f.TopMost = $true; $f.FormBorderStyle = 'FixedDialog'
@@ -174,14 +177,20 @@ function Show-Prompt([string]$heading, [string]$text, [int]$autoCloseSeconds = 0
     $s.Size = New-Object Drawing.Size(240, 56); $s.Location = New-Object Drawing.Point(($VsRect[2] - 290), 182)
     $s.DialogResult = [Windows.Forms.DialogResult]::Abort
     $f.Controls.AddRange(@($h, $l, $b, $s)); $f.AcceptButton = $b
-    $state = @{ closed = $false }
+    $state = @{ closed = $false; doneAt = $null }
     if ($autoCloseSeconds -gt 0) {
         $t = New-Object Windows.Forms.Timer; $t.Interval = $autoCloseSeconds * 1000
         $t.Add_Tick({ $f.Close() }); $t.Start()
     }
-    if ($Watch -ne [IntPtr]::Zero) {
+    if ($Watch -ne [IntPtr]::Zero -or $DoneFile) {
         $w = New-Object Windows.Forms.Timer; $w.Interval = 200
-        $w.Add_Tick({ if (-not [DemoWin]::IsWindow($Watch)) { $state.closed = $true; $f.Close() } }.GetNewClosure()); $w.Start()
+        $w.Add_Tick({
+            if ($Watch -ne [IntPtr]::Zero -and -not [DemoWin]::IsWindow($Watch)) { $state.closed = $true; $f.Close(); return }
+            if ($DoneFile -and (Test-Path -LiteralPath $DoneFile)) {
+                if (-not $state.doneAt) { $state.doneAt = Get-Date; $l.Text = 'Done. The task ran by itself. Continuing in a few seconds...' }
+                elseif (((Get-Date) - $state.doneAt).TotalSeconds -ge $DoneDelay) { $f.DialogResult = [Windows.Forms.DialogResult]::OK; $f.Close() }
+            }
+        }.GetNewClosure()); $w.Start()
     }
     $r = $f.ShowDialog()
     $result = if ($state.closed) { 'closed' } elseif ($r -eq [Windows.Forms.DialogResult]::Abort) { 'stop' } else { 'continue' }
@@ -206,11 +215,13 @@ function Open-Console([string]$role, [System.Management.Automation.PSCredential]
 
 # VS Code with a throwaway profile: no recent folders, accounts or extensions on
 # screen, and a fresh Workspace Trust state, so it asks about this folder.
-function Start-VsCode {
+# -SelfTest (dry run only): no trust question and automatic tasks on, so the task
+# runs with no clicks and the whole VS Code part can be checked unattended.
+function Start-VsCode([switch]$SelfTest) {
     Remove-Item -Recurse -Force $VsData -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Force -Path "$VsData\data\User", "$VsData\ext" | Out-Null
     # Setting ids checked against the installed VS Code's own workbench code.
-    [ordered]@{
+    $settings = [ordered]@{
         'security.workspace.trust.startupPrompt' = 'once'
         'workbench.startupEditor' = 'none'
         'workbench.welcomePage.experimentalOnboarding' = $false   # no Copilot sign-in screen
@@ -223,7 +234,11 @@ function Start-VsCode {
         'update.mode' = 'none'
         'git.enabled' = $false                                     # no "git repository found" notification
         'git.openRepositoryInParentFolders' = 'never'
-    } | ConvertTo-Json | Set-Content -LiteralPath "$VsData\data\User\settings.json" -Encoding UTF8
+        'workbench.panel.opensMaximized' = 'always'                # the task's whole output stays on screen
+        'workbench.secondarySideBar.defaultVisibility' = 'hidden'  # give the terminal the full width
+    }
+    if ($SelfTest) { $settings['security.workspace.trust.enabled'] = $false; $settings['task.allowAutomaticTasks'] = 'on' }
+    $settings | ConvertTo-Json | Set-Content -LiteralPath "$VsData\data\User\settings.json" -Encoding UTF8
     # Open a fresh, self-contained copy of the trap at a path VS Code has never
     # seen and that no trusted folder encloses. VS Code keeps trusted folders in a
     # store shared by all profiles (%USERPROFILE%\.vscode-shared), so the repo
@@ -236,6 +251,7 @@ function Start-VsCode {
     Copy-Item -LiteralPath (Join-Path $Repo 'spareroom') -Destination $root -Recurse
     Get-ChildItem -LiteralPath $root -Recurse -Directory -Filter '__pycache__' | Remove-Item -Recurse -Force
     $open = Join-Path $root 'traps\vscode_task'
+    $script:TrapDone = Join-Path $root 'trap-result.json'   # the task writes this when it has finished
     Start-Process -FilePath $Code -ArgumentList @("--user-data-dir=`"$VsData\data`"", "--extensions-dir=`"$VsData\ext`"",
         '--new-window', "`"$open`"") -RedirectStandardOutput "$VsData\code-out.log" -RedirectStandardError "$VsData\code-err.log"
     $h = WaitHandle 'vscode_task' 60
@@ -285,15 +301,12 @@ Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'demo_window.ps1') -Destination 
 try {   # every path out of here, Ctrl+C included, ends in the finally block below
 
 if ($DryRun) {
-    $vsRec = Start-VsCode
+    # The VS Code part, unattended: the task runs by itself (-SelfTest), the box
+    # must continue on its own after the task's result file appears.
+    $vsRec = Start-VsCode -SelfTest
     $clip = Start-Clip 'dry-vscode' $null $vsRec
-    # Close VS Code from outside after 3 s: the prompt must notice and return 'closed'.
-    $job = Start-Job { Start-Sleep -Seconds 3
-        Get-CimInstance Win32_Process -Filter "Name = 'Code.exe'" | Where-Object { $_.CommandLine -like '*spareroom-demo-vscode*' } |
-            ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } }
-    $r = Show-Prompt 'Prompt test' 'VS Code will be closed in 3 seconds; this box should close at once when it does.' 15 -Watch $script:VsHandle
+    $r = Show-Prompt 'Self-test' 'The task should run by itself; this box should then continue on its own.' 60 -Watch $script:VsHandle -DoneFile $script:TrapDone -DoneDelay 4
     Stop-Clip $clip
-    Remove-Job $job -Force
     Cleanup-VsCode
     Write-Host "Dry run: prompt returned '$r'. Saved to $Raw\dry-vscode.mkv"
     exit 0
@@ -323,8 +336,8 @@ $clipV = Start-Clip 'vscode' $null $vsRec
 Note 'vscode recording'
 $r = Show-Prompt 'Your turn: VS Code' ("1. In VS Code, click 'Yes, I trust the authors'.`n" +
     "2. A message at the bottom right asks whether to allow automatic tasks. Click Allow.`n" +
-    "3. A terminal opens at the bottom of VS Code. When it shows 'visible: 13' and the list, click Continue here.`n" +
-    "If nothing happens within a minute, click Stop recording.") -Watch $script:VsHandle
+    "The task then runs by itself and shows 'visible: 13'. This box continues on its own a few seconds later.`n" +
+    "If nothing happens within a minute of clicking Allow, click Stop recording.") -Watch $script:VsHandle -DoneFile $script:TrapDone -DoneDelay 7
 if ($r -eq 'closed') { Fail 'VS Code was closed, so recording stopped at once. Run the script again.' }
 if ($r -eq 'stop') { Fail 'Stopped at your request.' }
 Start-Sleep -Seconds 2

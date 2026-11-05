@@ -262,3 +262,20 @@ Tests: 86 passing.
 - The verify step's real project folder name is covered with <project> on
   every frame where it appears; the cut points are calibrated from the frames,
   so no frame shows it. Checked frame by frame at the boundaries, and every 5 s.
+
+### Final video and polish round (2026-11-05)
+- Re-recorded by the user with tools/record_demo.ps1: the VS Code trap (Trust,
+  then Allow, task prints 13 reachable), the offline beat (Wi-Fi off, ping
+  fails, `scan --demo` completes, Wi-Fi on) and the spare room (whoami,
+  doctor, probe 13 blocked, verify in three groups).
+- tools/video/edit.mjs rewritten: web/public/real-demo.mp4 is 1:51, 1920x1080,
+  captions burned in, plus real-demo.vtt (13 cues) and real-demo-poster.jpg
+  (the title card, now the video's poster on the home page). Cut points are
+  calibrated from the frames; the real project folder shows as <project> on
+  every frame, and the sped-up verify segment ends before any output appears.
+- Frame check every 3 s: numbers match captions, no caption over two lines,
+  nothing personal. Known and accepted: two long fake-laptop paths soft-wrap in
+  the VS Code terminal (still readable).
+- docs/narration.md: optional timed first-person narration and Sound Recorder
+  steps. Captions only unless the user sends audio.
+- 108 tests pass; Playwright and axe clean at 390 and 1440; deployed.

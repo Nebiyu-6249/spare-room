@@ -15,5 +15,6 @@ trap-result.json
 
 # Raw screen recordings (edited into web/public/real-demo.mp4)
 demo-video/raw/
+demo-video/narration.*
 tools/video/edit-work/
 

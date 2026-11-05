@@ -1,49 +1,53 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:04.500
+00:00:00.000 --> 00:00:05.000
 Spare Room: run the recruiter's code in a room with nothing in it.
 
 2
-00:00:04.500 --> 00:00:10.500
+00:00:05.000 --> 00:00:12.000
 Binance's $6.34B loss involved an engineer running a recruiter's coding assignment on his work computer.
 
 3
-00:00:10.500 --> 00:00:13.426
-Your account: the one you use every day, with your keys, logins and wallets.
+00:00:12.000 --> 00:00:16.600
+A recruiter's test repo, opened in VS Code in your account. VS Code asks whether you trust its authors.
 
 4
-00:00:13.426 --> 00:00:21.104
-Spare Room's scan of a bundled fake laptop: 25 things code running as you could reach. It never reads their contents.
+00:00:16.600 --> 00:00:21.050
+You trust it. VS Code then asks once whether the folder's tasks may run automatically, and you allow it.
 
 5
-00:00:21.104 --> 00:00:28.351
-The same results as a local report. It loads nothing from the internet.
+00:00:21.050 --> 00:00:39.150
+The folder's task runs by itself. This one is harmless: it checks 13 fake secrets, and as your account it reaches all 13.
 
 6
-00:00:28.351 --> 00:00:36.845
-The check a stranger's code could make, against 13 fake secrets in your folder: all 13 reachable.
+00:00:39.150 --> 00:00:43.284
+Now with Wi-Fi off. The ping cannot reach the internet.
 
 7
-00:00:36.845 --> 00:00:42.845
-Creating the spare room took 29.6 s (recorded earlier; Windows does not allow its permission prompt to be screen-recorded).
+00:00:43.284 --> 00:00:54.815
+Spare Room's scan of a bundled fake laptop still completes. It works fully offline and never reads the secrets' contents.
 
 8
-00:00:42.845 --> 00:00:45.760
-The spare room: a separate, standard Windows account with nothing in it.
+00:00:54.815 --> 00:01:01.315
+Creating the spare room took 29.6 s (recorded earlier; Windows does not allow its permission prompt to be screen-recorded).
 
 9
-00:00:45.760 --> 00:00:54.152
-Can the coding test run here? Node.js, npm and Git, yes. Python and VS Code need installing for all users.
+00:01:01.315 --> 00:01:04.336
+The spare room: a separate, standard Windows account with nothing in it.
 
 10
-00:00:54.152 --> 00:01:02.349
-The same 13 paths, tried from the spare room: 13 blocked.
+00:01:04.336 --> 00:01:16.742
+Can the coding test run here? Node.js, npm and Git, yes. Python and VS Code need installing for all users.
 
 11
-00:01:02.349 --> 00:01:10.928
-Checked from inside: none of the 12 secret locations in your account are readable. One .env outside any account folder still is.
+00:01:16.742 --> 00:01:28.132
+From the spare room, the 13 fake secrets kept in a copy inside your account's folder: all 13 blocked.
 
 12
-00:01:10.928 --> 00:01:17.428
+00:01:28.132 --> 00:01:43.547
+Checked from inside the spare room: 12 of 12 secret locations in your account are out of reach. One .env outside any account folder is still readable by everyone.
+
+13
+00:01:43.547 --> 00:01:51.047
 13 reachable, then 0. Offline. Never reads secret contents. Weaker than a virtual machine. spare-room-demo.netlify.app

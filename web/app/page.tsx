@@ -49,7 +49,7 @@ export default function Home() {
       {video && (
         <section aria-labelledby="video-title">
           <SectionTitle id="video-title">See the tool run</SectionTitle>
-          <video controls preload="metadata" playsInline className="h-auto w-full rounded-md border border-line bg-card">
+          <video controls preload="metadata" playsInline poster={video.poster ?? undefined} className="h-auto w-full rounded-md border border-line bg-card">
             <source src={video.src} type="video/mp4" />
             {video.captions && <track kind="captions" src={video.captions} srcLang="en" label="English" />}
             Your browser cannot play this video.

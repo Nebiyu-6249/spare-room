@@ -224,8 +224,20 @@ function Start-VsCode {
         'git.enabled' = $false                                     # no "git repository found" notification
         'git.openRepositoryInParentFolders' = 'never'
     } | ConvertTo-Json | Set-Content -LiteralPath "$VsData\data\User\settings.json" -Encoding UTF8
+    # Open a fresh, self-contained copy of the trap at a path VS Code has never
+    # seen and that no trusted folder encloses. VS Code keeps trusted folders in a
+    # store shared by all profiles (%USERPROFILE%\.vscode-shared), so the repo
+    # itself, or anything inside it, may already be trusted and would not ask.
+    # The task runs from two folders up, so the copy carries the tool with it.
+    $root = Join-Path (Join-Path $Work ("trap-" + [guid]::NewGuid().ToString('N').Substring(0, 8))) 'spare-room'
+    New-Item -ItemType Directory -Force -Path (Join-Path $root 'traps'), (Join-Path $root 'demo') | Out-Null
+    Copy-Item -LiteralPath $Trap -Destination (Join-Path $root 'traps') -Recurse
+    Copy-Item -LiteralPath (Join-Path $Repo 'demo\fake_laptop') -Destination (Join-Path $root 'demo') -Recurse
+    Copy-Item -LiteralPath (Join-Path $Repo 'spareroom') -Destination $root -Recurse
+    Get-ChildItem -LiteralPath $root -Recurse -Directory -Filter '__pycache__' | Remove-Item -Recurse -Force
+    $open = Join-Path $root 'traps\vscode_task'
     Start-Process -FilePath $Code -ArgumentList @("--user-data-dir=`"$VsData\data`"", "--extensions-dir=`"$VsData\ext`"",
-        '--new-window', "`"$Trap`"") -RedirectStandardOutput "$VsData\code-out.log" -RedirectStandardError "$VsData\code-err.log"
+        '--new-window', "`"$open`"") -RedirectStandardOutput "$VsData\code-out.log" -RedirectStandardError "$VsData\code-err.log"
     $h = WaitHandle 'vscode_task' 60
     if ($h -eq [IntPtr]::Zero) { Fail 'VS Code did not open traps\vscode_task.' }
     $script:VsHandle = $h
@@ -243,6 +255,9 @@ function Cleanup-VsCode {
         ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
     Start-Sleep -Milliseconds 800
     Remove-Item -Recurse -Force $VsData -ErrorAction SilentlyContinue
+    # This run's copy of the trap, and any left by an earlier stopped run.
+    Get-ChildItem -LiteralPath $Work -Directory -Filter 'trap-*' -ErrorAction SilentlyContinue |
+        ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
 # --- checks ------------------------------------------------------------------

@@ -6,10 +6,11 @@ import path from "node:path";
 
 const ROOT = process.cwd();
 
-export function realVideo(): { src: string; captions: string | null } | null {
+export function realVideo(): { src: string; captions: string | null; poster: string | null } | null {
   const pub = path.join(ROOT, "public");
   if (!fs.existsSync(path.join(pub, "real-demo.mp4"))) return null;
-  return { src: "/real-demo.mp4", captions: fs.existsSync(path.join(pub, "real-demo.vtt")) ? "/real-demo.vtt" : null };
+  const has = (f: string) => (fs.existsSync(path.join(pub, f)) ? `/${f}` : null);
+  return { src: "/real-demo.mp4", captions: has("real-demo.vtt"), poster: has("real-demo-poster.jpg") };
 }
 
 export type DoctorTool = {

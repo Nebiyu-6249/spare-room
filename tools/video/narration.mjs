@@ -4,12 +4,16 @@
 // Default output: demo-video/narration-work/ (line-01.wav ... and lines.json).
 // The recording has about 2 s of silence between lines; a re-read line is
 // preceded by the word "again". Steps:
-//   1. light noise reduction (afftdn), high-pass at 80 Hz, 48 kHz mono;
+//   1. light noise reduction (afftdn) unless the file is already clean (noise
+//      floor under -70 dB, as from a voice generator), high-pass at 80 Hz,
+//      48 kHz mono;
 //   2. split at silences of 1.3 s or more;
 //   3. a very short piece (under 1.0 s) is an "again": it and the take before
 //      it are dropped, so the last take of a line is kept;
-//   4. exactly 13 pieces must remain, or nothing is written. A map.json in the
-//      output folder ({"keep": [piece numbers]}) overrides step 3.
+//   4. exactly 13 pieces must remain, or nothing is written.
+// A map.json in the output folder overrides steps 2-3: {"keep": [piece numbers]}
+// picks pieces, or {"lines": [[start, end], ...]} gives each line's start and
+// end in seconds of the input, for a reading without long pauses.
 // Loudness (-16 LUFS) is set later, on the finished narration track, by edit.mjs.
 
 import ffmpeg from "ffmpeg-static";
@@ -35,8 +39,12 @@ function ff(args, label) {
   return r.stderr || "";
 }
 
+const floor = parseFloat((ff(["-i", input, "-af", "astats=metadata=0", "-f", "null", "-"], "noise floor")
+  .match(/Noise floor dB: (-?[\d.]+|-inf)/) ?? [0, "0"])[1].replace("-inf", "-200"));
+const denoise = floor > -70;
+console.log(`noise floor ${floor.toFixed(1)} dB: ${denoise ? "light noise reduction" : "already clean, no noise reduction"}`);
 const clean = join(OUT, "clean.wav");
-ff(["-loglevel", "error", "-i", input, "-ac", "1", "-ar", "48000", "-af", "highpass=f=80,afftdn=nr=12:nf=-45", clean], "clean");
+ff(["-loglevel", "error", "-i", input, "-ac", "1", "-ar", "48000", "-af", `highpass=f=80${denoise ? ",afftdn=nr=12:nf=-45" : ""}`, clean], "clean");
 const total = parseFloat(ff(["-i", clean, "-f", "null", "-"], "probe").match(/time=(\d+):(\d+):([\d.]+)/g).pop()
   .replace("time=", "").split(":").reduce((a, x) => a * 60 + parseFloat(x), 0));
 
@@ -57,8 +65,11 @@ pieces.forEach((p, i) => { p.n = i + 1; p.dur = +(p.end - p.start).toFixed(2); }
 
 let keep;
 const mapFile = join(OUT, "map.json");
-if (existsSync(mapFile)) {
-  keep = JSON.parse(readFileSync(mapFile, "utf8")).keep.map((n) => pieces[n - 1]);
+const map = existsSync(mapFile) ? JSON.parse(readFileSync(mapFile, "utf8")) : null;
+if (map?.lines) {
+  keep = map.lines.map(([start, end], i) => ({ n: `L${i + 1}`, start, end }));
+} else if (map?.keep) {
+  keep = map.keep.map((n) => pieces[n - 1]);
 } else {
   keep = [];
   for (const p of pieces) {
@@ -75,7 +86,9 @@ if (keep.length !== LINES.length) {
 
 const lines = keep.map((p, i) => {
   const file = join(OUT, `line-${String(i + 1).padStart(2, "0")}.wav`);
-  const a = Math.max(0, p.start - 0.06), b = Math.min(total, p.end + 0.12), d = b - a;
+  // A little air either side, but never into the neighbouring line.
+  const a = Math.max(i ? keep[i - 1].end : 0, p.start - 0.06);
+  const b = Math.min(i < keep.length - 1 ? keep[i + 1].start : total, p.end + 0.12), d = b - a;
   ff(["-loglevel", "error", "-ss", a.toFixed(3), "-to", b.toFixed(3), "-i", clean,
     "-af", `afade=t=in:d=0.03,afade=t=out:st=${(d - 0.05).toFixed(3)}:d=0.05`, file], `line ${i + 1}`);
   const est = estimateSec(LINES[i]);

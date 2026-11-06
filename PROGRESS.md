@@ -303,3 +303,14 @@ Tests: 86 passing.
   still gets through"; "Before you run a stranger's code, give it a spare
   room." sits under "13 reachable, then 0". The poster is now the end card.
 - 108 tests pass; Playwright and axe clean at 390 and 1440; deployed.
+
+### Narration mixed in (2026-11-06)
+- The user supplied a generated narration (voicestudio WAV, 24 kHz mono, 1:51,
+  noise floor -90 dB). It reads all 13 lines with no long pauses, so the lines
+  were set by hand in demo-video/narration-work/map.json from its short pauses,
+  checked by transcribing each piece offline with Windows speech recognition
+  (three boundaries fell inside unbroken speech and were placed at 0.1 s breaths).
+- No noise reduction (already clean); normalised from -21.4 to -16.4 LUFS
+  integrated, -1.3 dB peak. Every line starts 0.2 s into its shot. Video 1:57.8.
+- Frames every 3 s checked; whoami (<pc>) and verify (<project>) covers checked
+  frame by frame. The narration file stays in demo-video/ and is not committed.

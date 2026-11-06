@@ -1,45 +1,56 @@
-# Narration for the demo video (optional)
+# Narration for the demo video
 
-The video (web/public/real-demo.mp4, 1:51) already has captions burned in, so
-narration is optional. If you record it, I mix it under the video, and I can
-stretch a shot by a second or two if a line runs long.
+The video (web/public/real-demo.mp4) has captions burned in and works without
+sound. If you record these lines, `tools/video/narration.mjs` splits your
+recording and `tools/video/edit.mjs` mixes it in, sizing each shot to its line
+plus about half a second. The lines are also in `tools/video/script.mjs`; keep
+the two in step.
 
-Read in your normal voice, a little slower than talking. Each line has the time
-its shot is on screen and a rough word budget (about 2.5 words per second).
+Read in your normal voice, a little slower than talking.
 
-| # | Shot (time) | Line |
-|---|-------------|------|
-| 1 | Title card (0:00-0:05) | Spare Room: run a recruiter's code in a room with nothing in it. |
-| 2 | Binance card (0:05-0:12) | Binance's 6.34 billion dollar loss involved an engineer who ran a recruiter's coding test on his work computer. |
-| 3 | VS Code trust question (0:12-0:17) | I open a recruiter's test repo in VS Code, in my own account. |
-| 4 | Allow tasks (0:17-0:21) | I trust it, and I let its tasks run. |
-| 5 | Task output (0:21-0:39) | A task starts by itself. This one is harmless. It only checks whether thirteen fake secrets exist and can be read: SSH keys, cloud logins, wallets, a dot env file. From my account, it reaches all thirteen. |
-| 6 | Ping with Wi-Fi off (0:39-0:43) | Now the Wi-Fi is off. The ping fails. |
-| 7 | Offline scan (0:43-0:55) | Spare Room's scan of a fake laptop still finishes. It works fully offline, and it never opens a secret. It only notes where one sits. |
-| 8 | Setup time card (0:55-1:01) | Creating the spare room, a second Windows account, took under thirty seconds. |
-| 9 | whoami (1:01-1:04) | Now I'm inside the spare room. |
-| 10 | doctor (1:04-1:17) | Doctor checks whether the coding test can run here. Node, npm and Git are ready. Python and VS Code need installing once, for all users. |
-| 11 | probe (1:17-1:28) | The same check, from here, against the same thirteen fake secrets in my account's folder. All thirteen blocked. |
-| 12 | verify (1:28-1:44) | Verify, run from inside the spare room, checks my real account. Twelve of twelve secret locations are out of reach. One dot env file sits outside any account folder, so every account can read it. |
-| 13 | End card (1:44-1:51) | Thirteen reachable, then zero. Weaker than a virtual machine, but set up in under thirty seconds. |
+| # | Shot | Line |
+|---|------|------|
+| 1 | Card: the recruiter message | I'm a developer, and recruiters and clients often send me a short coding test before the first call. I want the job, so I open it. |
+| 2 | Card: Binance, with its source | Binance says its six point three billion dollar hack started the same way. An engineer ran a recruiter's coding test on his work laptop. |
+| 3 | VS Code asks about trusting the authors | Here's a test like that, opened in VS Code on my own account. It asks if I trust the authors. Most of us click yes. |
+| 4 | VS Code asks about automatic tasks | Then it asks if the folder's tasks can run. I allow it. |
+| 5 | The task's output: 13 visible | Something starts by itself. This one is harmless, and the secrets are fake. In a few seconds it finds an SSH key, cloud logins, three crypto wallets and saved browser passwords. Thirteen secrets, all in reach. A real one wouldn't just look. |
+| 6 | Card: the virtual machine | The safe answer is a virtual machine. But setting one up takes an evening, and for a one-hour test, most people skip it. |
+| 7 | Card: setup took 29.6 s | So I built Spare Room. It creates a spare room: a second Windows account with nothing in it. On my laptop, that took thirty seconds. |
+| 8 | whoami in the spare room | Now I'm signed in to the spare room. |
+| 9 | doctor | First question: can I still do the test here? Node, npm and Git are ready. Python and VS Code need one install, for all users. |
+| 10 | probe: 13 blocked | Now the same check, against the same thirteen secrets. Blocked. All thirteen. |
+| 11 | verify | Spare Room also checks from the inside. All twelve secret locations in my account are out of reach. One dot env file sits in a shared folder, so every account can read it. Spare Room points it out, so I can move it. |
+| 12 | Wi-Fi off: the ping fails, the demo scan completes | You shouldn't have to trust a security tool blindly. Spare Room works with the Wi-Fi off, and it never reads a secret's value. |
+| 13 | End card | It's weaker than a virtual machine. It also takes thirty seconds instead of an evening. Thirteen reachable, then zero. Before you run a stranger's code, give it a spare room. |
 
-Do not read out the project folder name in line 12. The video hides it.
+In line 10, leave a short beat after "Blocked." The edit adds one more second
+of quiet after the line.
 
-## Recording it with Windows Sound Recorder
+Don't read out the project folder name or the computer name; the video
+covers both.
 
-1. Plug in a headset or USB mic if you have one, and go to a quiet room.
-2. Open Start, type **Sound Recorder** and open it. (On older Windows 11 builds
-   it is called Voice Recorder.)
-3. Pick your microphone in the list at the bottom left. Set the format to
-   **m4a** or **wav** if the app offers a choice.
-4. Press the record button (or Ctrl+R). Wait two seconds before you speak.
-5. Read the lines in order. **Pause about two seconds between lines**. You do
-   not need to keep up with the video: I cut the file at the pauses and place
-   each line at the start of its shot.
-6. If you stumble, stop, pause two seconds and read that whole line again. Say
-   "again" before you do, and I will keep the last take.
+## Recording with Windows Sound Recorder
+
+1. Use a headset or USB mic if you have one, in a quiet room.
+2. Open Start, type **Sound Recorder** and open it. On older Windows 11 builds
+   it is called Voice Recorder.
+3. Pick your microphone at the bottom left.
+4. Press record (Ctrl+R) and wait two seconds before you speak.
+5. Read the 13 lines in order, with **about two seconds of silence between
+   lines**. You don't need to keep up with the video.
+6. If you stumble, pause, say **"again"**, pause, and read the whole line again.
+   The last take is kept.
 7. Press stop. The file goes to Documents\Sound recordings.
-8. Copy it to `demo-video\narration.m4a` (or `.wav`) in this repo and tell me.
-   That folder is not published or committed.
+8. Copy it into this repo as `demo-video\narration.m4a`. It is never committed
+   or published.
 
-If you would rather not narrate, the video stays as it is, with captions only.
+## Mixing it in (done by Claude)
+
+    cd tools/video
+    node narration.mjs     # split at the pauses, drop "again" takes, light noise reduction
+    node edit.mjs          # place each line at the start of its shot, -16 LUFS, no music
+
+`narration.mjs` stops without writing anything if it doesn't find exactly 13
+lines. A `demo-video/narration-work/map.json` of the form `{"keep": [piece numbers]}`
+then picks the takes by hand.

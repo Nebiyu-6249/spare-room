@@ -1,53 +1,73 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:05.000
-Spare Room: run the recruiter's code in a room with nothing in it.
+00:00:00.000 --> 00:00:10.205
+Recruiters and clients often send me a short coding test before the first call. I want the job, so I open it.
 
 2
-00:00:05.000 --> 00:00:12.000
-Binance's $6.34B loss involved an engineer running a recruiter's coding assignment on his work computer.
+00:00:10.205 --> 00:00:19.682
+Binance says its $6.3 billion hack started the same way: an engineer ran a recruiter's coding test on his work laptop.
 
 3
-00:00:12.000 --> 00:00:16.600
-A recruiter's test repo, opened in VS Code in your account. VS Code asks whether you trust its authors.
+00:00:19.682 --> 00:00:29.773
+A test like that, opened in VS Code on my own account. It asks if I trust the authors. Most of us click yes.
 
 4
-00:00:16.600 --> 00:00:21.050
-You trust it. VS Code then asks once whether the folder's tasks may run automatically, and you allow it.
+00:00:29.773 --> 00:00:34.886
+Then it asks if the folder's tasks can run. I allow it.
 
 5
-00:00:21.050 --> 00:00:39.150
-The folder's task runs by itself. This one is harmless: it checks 13 fake secrets, and as your account it reaches all 13.
+00:00:34.886 --> 00:00:40.224
+Something starts by itself. This one is harmless, and the secrets are fake.
 
 6
-00:00:39.150 --> 00:00:43.284
-Now with Wi-Fi off. The ping cannot reach the internet.
+00:00:40.224 --> 00:00:46.793
+In seconds it finds an SSH key, cloud logins, three crypto wallets and saved browser passwords.
 
 7
-00:00:43.284 --> 00:00:54.815
-Spare Room's scan of a bundled fake laptop still completes. It works fully offline and never reads the secrets' contents.
+00:00:46.793 --> 00:00:51.659
+13 secrets, all in reach. A real one wouldn't just look.
 
 8
-00:00:54.815 --> 00:01:01.315
-Creating the spare room took 29.6 s (recorded earlier; Windows does not allow its permission prompt to be screen-recorded).
+00:00:51.659 --> 00:01:00.773
+The safe answer is a virtual machine. But setting one up takes an evening, and for a one-hour test, most people skip it.
 
 9
-00:01:01.315 --> 00:01:04.336
-The spare room: a separate, standard Windows account with nothing in it.
+00:01:00.773 --> 00:01:11.114
+So I built Spare Room. It creates a spare room: a second Windows account with nothing in it. On my laptop, that took 30 seconds.
 
 10
-00:01:04.336 --> 00:01:16.742
-Can the coding test run here? Node.js, npm and Git, yes. Python and VS Code need installing for all users.
+00:01:11.114 --> 00:01:14.523
+Now I'm signed in to the spare room.
 
 11
-00:01:16.742 --> 00:01:28.132
-From the spare room, the 13 fake secrets kept in a copy inside your account's folder: all 13 blocked.
+00:01:14.523 --> 00:01:24.864
+Can I still do the test here? Node, npm and Git are ready. Python and VS Code need one install, for all users.
 
 12
-00:01:28.132 --> 00:01:43.547
-Checked from inside the spare room: 12 of 12 secret locations in your account are out of reach. One .env outside any account folder is still readable by everyone.
+00:01:24.864 --> 00:01:31.227
+Now the same check, against the same 13 secrets. Blocked. All 13.
 
 13
-00:01:43.547 --> 00:01:51.047
-13 reachable, then 0. Offline. Never reads secret contents. Weaker than a virtual machine. spare-room-demo.netlify.app
+00:01:31.227 --> 00:01:38.859
+Spare Room also checks from the inside. All 12 secret locations in my account are out of reach.
+
+14
+00:01:38.859 --> 00:01:48.114
+One .env sits in a shared folder every account can read. Spare Room points it out, so I can move it.
+
+15
+00:01:48.114 --> 00:01:51.543
+You shouldn't have to trust a security tool blindly.
+
+16
+00:01:51.543 --> 00:01:57.227
+Spare Room works with the Wi-Fi off, and it never reads a secret's value.
+
+17
+00:01:57.227 --> 00:02:03.132
+It's weaker than a virtual machine. It also takes 30 seconds instead of an evening.
+
+18
+00:02:03.132 --> 00:02:09.386
+13 reachable, then 0. Before you run a stranger's code, give it a spare room.

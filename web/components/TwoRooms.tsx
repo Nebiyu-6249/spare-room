@@ -305,6 +305,7 @@ export default function TwoRooms() {
                     <span className="text-high">{YOURS_REACHED} reachable</span>, then{" "}
                     <span className="text-ok">{SPARE_REACHED}</span>
                   </p>
+                  <p className="mt-1 text-lg">Before you run a stranger&apos;s code, give it a spare room.</p>
                   <p className="mt-1 text-[15px] text-ok">
                     The same {TOTAL} paths, tried from the spare room: {SPARE_BLOCKED} blocked
                   </p>

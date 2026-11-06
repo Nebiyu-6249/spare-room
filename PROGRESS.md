@@ -279,3 +279,23 @@ Tests: 86 passing.
 - docs/narration.md: optional timed first-person narration and Sound Recorder
   steps. Captions only unless the user sends audio.
 - 108 tests pass; Playwright and axe clean at 390 and 1440; deployed.
+
+### New video story (2026-11-06)
+- Re-edited from the same raw clips (no new recording) into the user's 13-shot
+  story: recruiter message card (fictional), Binance card, VS Code trust and
+  tasks prompts, 13 visible, virtual-machine card, setup card, whoami, doctor,
+  probe (13 blocked), verify, the offline beat (moved near the end), end card.
+  2:09 captions-only; each shot is sized to its narration line plus ~0.5 s
+  (estimated at 2.75 words per second until audio exists).
+- tools/video/script.mjs holds the 13 lines; narration.mjs splits a recording
+  at 1.3 s silences, drops "again" takes, applies light noise reduction;
+  edit.mjs places each line at its shot and normalises to -16 LUFS. Tested end
+  to end with a synthetic Windows text-to-speech file (scratchpad only).
+- Found and fixed: whoami printed the computer name, which the previous video
+  (v1:51, live 2026-11-05 to 2026-11-06) showed for about 2.6 s. It is now
+  covered with <pc> on every frame, checked frame by frame. Earlier copies of
+  real-demo.mp4 in git history still contain it.
+- Site: "Can I do my coding test in the spare room?" now comes before "What
+  still gets through"; "Before you run a stranger's code, give it a spare
+  room." sits under "13 reachable, then 0". The poster is now the end card.
+- 108 tests pass; Playwright and axe clean at 390 and 1440; deployed.

@@ -66,28 +66,6 @@ export default function Home() {
         <TwoRooms />
       </section>
 
-      <section aria-labelledby="gaps-title">
-        <SectionTitle id="gaps-title">What still gets through</SectionTitle>
-        <Card>
-          <ul className="space-y-4">
-            <li>
-              <span className="font-medium">Files every account can read.</span>{" "}
-              {leaks.length > 0 ? (
-                <>Checked from inside the spare room, this file outside any account folder was still readable:{" "}
-                  {leaks.map((p) => <Path key={p}>{p}</Path>)}. A separate account cannot protect it; move it into your
-                  own folder.</>
-              ) : (
-                <>Checked from inside the spare room, no such file was found.</>
-              )}
-            </li>
-            <li>
-              <span className="font-medium">Anything a separate account cannot stop.</span> It is weaker than a virtual
-              machine: malware with administrator rights, and your network or VPN, can still be reached.
-            </li>
-          </ul>
-        </Card>
-      </section>
-
       {doctor && (
         <section aria-labelledby="tools-title">
           <SectionTitle id="tools-title">Can I do my coding test in the spare room?</SectionTitle>
@@ -126,6 +104,28 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      <section aria-labelledby="gaps-title">
+        <SectionTitle id="gaps-title">What still gets through</SectionTitle>
+        <Card>
+          <ul className="space-y-4">
+            <li>
+              <span className="font-medium">Files every account can read.</span>{" "}
+              {leaks.length > 0 ? (
+                <>Checked from inside the spare room, this file outside any account folder was still readable:{" "}
+                  {leaks.map((p) => <Path key={p}>{p}</Path>)}. A separate account cannot protect it; move it into your
+                  own folder.</>
+              ) : (
+                <>Checked from inside the spare room, no such file was found.</>
+              )}
+            </li>
+            <li>
+              <span className="font-medium">Anything a separate account cannot stop.</span> It is weaker than a virtual
+              machine: malware with administrator rights, and your network or VPN, can still be reached.
+            </li>
+          </ul>
+        </Card>
+      </section>
 
       <section aria-labelledby="download-title">
         <SectionTitle id="download-title">Download</SectionTitle>

@@ -293,8 +293,12 @@ Tests: 86 passing.
   to end with a synthetic Windows text-to-speech file (scratchpad only).
 - Found and fixed: whoami printed the computer name, which the previous video
   (v1:51, live 2026-11-05 to 2026-11-06) showed for about 2.6 s. It is now
-  covered with <pc> on every frame, checked frame by frame. Earlier copies of
-  real-demo.mp4 in git history still contain it.
+  covered with <pc> on every frame, checked frame by frame. With the user's
+  go-ahead, the two earlier real-demo.mp4 versions were removed from git
+  history (filter-branch), master and tag v0.1.2 force-pushed; the release's
+  exe and checksums are unchanged. GitHub keeps serving the removed blobs by
+  hash until GitHub Support purges them; old Netlify deploy permalinks also
+  still hold the old video.
 - Site: "Can I do my coding test in the spare room?" now comes before "What
   still gets through"; "Before you run a stranger's code, give it a spare
   room." sits under "13 reachable, then 0". The poster is now the end card.

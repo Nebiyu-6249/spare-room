@@ -1,73 +1,73 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:10.205
+00:00:00.000 --> 00:00:08.499
 Recruiters and clients often send me a short coding test before the first call. I want the job, so I open it.
 
 2
-00:00:10.205 --> 00:00:19.682
+00:00:08.499 --> 00:00:17.597
 Binance says its $6.3 billion hack started the same way: an engineer ran a recruiter's coding test on his work laptop.
 
 3
-00:00:19.682 --> 00:00:29.773
+00:00:17.597 --> 00:00:25.728
 A test like that, opened in VS Code on my own account. It asks if I trust the authors. Most of us click yes.
 
 4
-00:00:29.773 --> 00:00:34.886
+00:00:25.728 --> 00:00:30.537
 Then it asks if the folder's tasks can run. I allow it.
 
 5
-00:00:34.886 --> 00:00:40.224
+00:00:30.537 --> 00:00:35.447
 Something starts by itself. This one is harmless, and the secrets are fake.
 
 6
-00:00:40.224 --> 00:00:46.793
+00:00:35.447 --> 00:00:41.491
 In seconds it finds an SSH key, cloud logins, three crypto wallets and saved browser passwords.
 
 7
-00:00:46.793 --> 00:00:51.659
+00:00:41.491 --> 00:00:45.996
 13 secrets, all in reach. A real one wouldn't just look.
 
 8
-00:00:51.659 --> 00:01:00.773
+00:00:45.996 --> 00:00:53.792
 The safe answer is a virtual machine. But setting one up takes an evening, and for a one-hour test, most people skip it.
 
 9
-00:01:00.773 --> 00:01:11.114
+00:00:53.792 --> 00:01:02.842
 So I built Spare Room. It creates a spare room: a second Windows account with nothing in it. On my laptop, that took 30 seconds.
 
 10
-00:01:11.114 --> 00:01:14.523
+00:01:02.842 --> 00:01:05.713
 Now I'm signed in to the spare room.
 
 11
-00:01:14.523 --> 00:01:24.864
+00:01:05.713 --> 00:01:16.227
 Can I still do the test here? Node, npm and Git are ready. Python and VS Code need one install, for all users.
 
 12
-00:01:24.864 --> 00:01:31.227
+00:01:16.227 --> 00:01:23.524
 Now the same check, against the same 13 secrets. Blocked. All 13.
 
 13
-00:01:31.227 --> 00:01:38.859
+00:01:23.524 --> 00:01:29.511
 Spare Room also checks from the inside. All 12 secret locations in my account are out of reach.
 
 14
-00:01:38.859 --> 00:01:48.114
+00:01:29.511 --> 00:01:36.845
 One .env sits in a shared folder every account can read. Spare Room points it out, so I can move it.
 
 15
-00:01:48.114 --> 00:01:51.543
+00:01:36.845 --> 00:01:40.191
 You shouldn't have to trust a security tool blindly.
 
 16
-00:01:51.543 --> 00:01:57.227
+00:01:40.191 --> 00:01:45.745
 Spare Room works with the Wi-Fi off, and it never reads a secret's value.
 
 17
-00:01:57.227 --> 00:02:03.132
+00:01:45.745 --> 00:01:51.585
 It's weaker than a virtual machine. It also takes 30 seconds instead of an evening.
 
 18
-00:02:03.132 --> 00:02:09.386
+00:01:51.585 --> 00:01:57.775
 13 reachable, then 0. Before you run a stranger's code, give it a spare room.

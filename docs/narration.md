@@ -52,5 +52,10 @@ covers both.
     node edit.mjs          # place each line at the start of its shot, -16 LUFS, no music
 
 `narration.mjs` stops without writing anything if it doesn't find exactly 13
-lines. A `demo-video/narration-work/map.json` of the form `{"keep": [piece numbers]}`
-then picks the takes by hand.
+lines. A `demo-video/narration-work/map.json` then sets them by hand: either
+`{"keep": [piece numbers]}` to pick takes, or `{"lines": [[start, end], ...]}`
+with each line's times in seconds, for a reading without long pauses. The
+narration in the current video (a generated voice, 1:51, no long pauses) was
+split that way, with the boundaries found from its short pauses and checked by
+transcribing each piece offline with Windows speech recognition. Audio that is
+already clean (noise floor under -70 dB) skips noise reduction.

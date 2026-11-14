@@ -314,3 +314,23 @@ Tests: 86 passing.
   integrated, -1.3 dB peak. Every line starts 0.2 s into its shot. Video 1:57.8.
 - Frames every 3 s checked; whoami (<pc>) and verify (<project>) covers checked
   frame by frame. The narration file stays in demo-video/ and is not committed.
+
+### Site redesign (draft, 2026-11-15)
+- New look: dark hero over a white body, brass/amber accent, ink-navy text and
+  dark bands; Figtree (self-hosted via next/font) with IBM Plex Mono for paths.
+- Sticky header: transparent over the hero, white once scrolled; accent tiles
+  "Watch the demo" and "Download"; on phones a Download tile and a Menu button.
+- Hero image generated at build time (tools/video/hero.mjs, run as postbuild)
+  from the 13 recorded "reachable" probe lines: 61 KB / 27 KB WebP. The video
+  poster is compressed to WebP (15 KB). The hero is static: a slow drift
+  animation cost about 6 Lighthouse points on this machine, so it was dropped.
+- Home: 80vh hero with a stat strip (13 / 0 / 29.6 s from the recorded JSON),
+  lead, video on a dark band, two rooms, coding-test table on grey, two
+  "still gets through" cards, download on an accent band, and an "On this
+  page" rail at 1200 px and wider. Other pages: 40vh hero and banded sections.
+- Checks: 108 tests; Playwright and axe clean on every page at 390 and 1440, no
+  horizontal scroll; every headline number matches the recorded JSON.
+  PageSpeed Insights (mobile, on the Netlify draft): performance 98,
+  accessibility 100 (FCP 1.0 s, LCP 2.2 s, TBT 90 ms, CLS 0). Local Lighthouse
+  on this machine reads much lower because its CPU benchmark is ~450.
+- Deployed as a Netlify draft only; production waits for the user's yes.

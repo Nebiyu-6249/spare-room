@@ -4,7 +4,8 @@
   "description": "Browser demo for Spare Room, replaying recorded output",
   "scripts": {
     "dev": "next dev",
-    "build": "next build"
+    "build": "next build",
+    "postbuild": "node ../tools/video/hero.mjs"
   },
   "license": "UNLICENSED",
   "dependencies": {

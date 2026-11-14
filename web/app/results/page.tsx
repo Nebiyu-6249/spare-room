@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { BigNumber, Card, Path, RecordedNote, SectionTitle, SeverityTag, StateTag } from "@/components/ui";
-import { ACCOUNT_NAMES, acct, CATEGORY_LABELS, cellsFor, countBy, cov, plain, scan, twin } from "@/lib/data";
+import { PageHero } from "@/components/Hero";
+import { Band, BigNumber, Card, Path, SectionTitle, SeverityTag, StateTag } from "@/components/ui";
+import { ACCOUNT_NAMES, acct, CATEGORY_LABELS, cellsFor, countBy, cov, plain, recorded, scan, twin } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Results | Spare Room" };
 
@@ -25,10 +26,11 @@ export default function Results() {
   const bySev = countBy(scan.findings, (f) => f.severity);
 
   return (
-    <div>
-      <h1 className="text-4xl font-semibold">Results</h1>
-      <div className="mt-3 max-w-3xl"><RecordedNote /></div>
+    <>
+      <PageHero title="Results" lead={<>Recorded from the real tool on a test machine on {recorded.recorded_on}. Every
+        number and path here is replayed from that output. All secrets are fake and marked FAKE-DEMO.</>} />
 
+      <Band>
       <SectionTitle>Your account and the spare room</SectionTitle>
       <div className="grid gap-4 sm:grid-cols-2">
         <Card><BigNumber value={`${yours.filter((c) => c === "visible").length} of ${total}`}
@@ -69,6 +71,9 @@ export default function Results() {
         </table>
       </div>
 
+      </Band>
+
+      <Band tone="mist">
       <SectionTitle>Checked from inside the spare room</SectionTitle>
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
@@ -90,6 +95,9 @@ export default function Results() {
         separately as information and are not counted as things stranger code could take.
       </p>
 
+      </Band>
+
+      <Band tone="white">
       <SectionTitle>Time to set up the spare room (Windows 11 Home)</SectionTitle>
       <div className="max-w-2xl rounded-md border border-line bg-card">
         <table className="w-full text-[15px]">
@@ -115,6 +123,9 @@ export default function Results() {
         </table>
       </div>
 
+      </Band>
+
+      <Band tone="mist">
       <SectionTitle>Coverage of public attacker reports</SectionTitle>
       <p className="mb-4 max-w-3xl">
         {covered} of {cov.length} things these reports say attackers went after are covered by a check. Uncovered rows
@@ -153,6 +164,9 @@ export default function Results() {
         </table>
       </div>
 
+      </Band>
+
+      <Band tone="white">
       <SectionTitle>Everything the scan found on the fake laptop</SectionTitle>
       <p className="mb-4 max-w-3xl">
         The two rooms use 13 fake secret files. The scan looks wider: it also reports settings, history and browser data
@@ -182,6 +196,7 @@ export default function Results() {
           );
         })}
       </div>
-    </div>
+      </Band>
+    </>
   );
 }

@@ -19,7 +19,7 @@ const PAGES = [["home", "/"], ["results", "/results/"], ["privacy", "/privacy/"]
 const WIDTHS = [390, 1440];
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".woff2": "font/woff2",
-  ".json": "application/json", ".txt": "text/plain", ".jpg": "image/jpeg", ".mp4": "video/mp4", ".vtt": "text/vtt" };
+  ".json": "application/json", ".txt": "text/plain", ".jpg": "image/jpeg", ".mp4": "video/mp4", ".vtt": "text/vtt", ".webp": "image/webp", ".svg": "image/svg+xml" };
 const server = createServer(async (req, res) => {
   let file = join(SITE, decodeURIComponent(new URL(req.url, "http://x").pathname));
   try { if ((await stat(file)).isDirectory()) file = join(file, "index.html"); } catch { file = join(SITE, "404.html"); }

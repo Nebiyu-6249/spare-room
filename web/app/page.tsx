@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { HomeHero } from "@/components/Hero";
+import PageRail from "@/components/PageRail";
 import TwoRooms from "@/components/TwoRooms";
-import { Card, Path, RecordedNote, SectionTitle } from "@/components/ui";
-import { acct, BINANCE_URL } from "@/lib/data";
+import { Band, Card, Path, SectionTitle } from "@/components/ui";
+import { acct, BINANCE_URL, cellsFor, recorded } from "@/lib/data";
 import { doctorRun, realVideo } from "@/lib/build-data";
 
 /** Install advice with any winget command pulled out onto its own unbroken line. */
@@ -22,76 +24,103 @@ function InstallAdvice({ text }: { text: string }) {
   );
 }
 
+const RAIL = [
+  { id: "overview", label: "Overview" },
+  { id: "video", label: "Demo video" },
+  { id: "rooms", label: "Two rooms" },
+  { id: "tools", label: "Your coding test" },
+  { id: "gaps", label: "What gets through" },
+  { id: "get", label: "Download" },
+];
+
 export default function Home() {
   const leaks = acct.verify.readable_env_outside_profiles;
   const video = realVideo();
   const doctor = doctorRun();
   const ready = doctor ? doctor.tools.filter((t) => t.found).length : 0;
+  const yours = cellsFor("normal").filter((c) => c === "visible").length;
+  const spare = cellsFor("interview").filter((c) => c === "visible").length;
+  const rail = RAIL.filter((r) => (r.id === "video" ? !!video : r.id === "tools" ? !!doctor : true));
 
   return (
-    <div>
-      <section className="max-w-3xl space-y-5">
-        <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-          Run the recruiter&apos;s code in a room with nothing in it.
-        </h1>
-        <p className="text-lg sm:text-xl">
-          Spare Room shows what code from a recruiter or client could reach on your Windows laptop, then sets up a
-          separate account, the spare room, where it reaches nothing that matters.
-        </p>
-        <p className="text-base">
-          In Binance&apos;s account of its $6.34B loss, one step was an engineer downloading a recruiter&apos;s coding
-          &quot;assignment&quot; onto his work computer.{" "}
-          <a href={BINANCE_URL} rel="noreferrer">Read the report</a>.
-        </p>
-        <RecordedNote />
-      </section>
+    <>
+      <HomeHero stats={[
+        { value: String(yours), label: "reachable from your account", mark: "reachable" },
+        { value: String(spare), label: "from the spare room", mark: "blocked" },
+        { value: `${acct.setup_wall_s} s`, label: "to set up", mark: "time" },
+      ]} />
+      <PageRail items={rail} />
+
+      <Band id="overview" labelledBy="overview-title" rail>
+        <h2 id="overview-title" className="sr-only">Overview</h2>
+        <div className="max-w-[780px] space-y-5">
+          <p className="text-[22px] font-bold leading-snug sm:text-[26px]">
+            In Binance&apos;s account of its $6.34B loss, one step was an engineer downloading a recruiter&apos;s coding
+            &ldquo;assignment&rdquo; onto his work computer.{" "}
+            <a href={BINANCE_URL} rel="noreferrer">Read the report</a>
+            <span className="text-[17px] font-normal text-muted"> (Binance&apos;s incident report, as reported by
+              TheStreet on Yahoo Finance)</span>.
+          </p>
+          <p className="text-lg">
+            Recruiters and clients often send a short coding test before the first call. When you open it, its code
+            runs as you and reaches what you can: SSH keys, cloud logins, crypto wallets, saved browser passwords.
+            Spare Room shows that reach, then gives the test a separate Windows account, the spare room, where those
+            files are out of reach.
+          </p>
+        </div>
+      </Band>
 
       {video && (
-        <section aria-labelledby="video-title">
-          <SectionTitle id="video-title">See the tool run</SectionTitle>
-          <video controls preload="metadata" playsInline poster={video.poster ?? undefined} className="h-auto w-full rounded-md border border-line bg-card">
+        <Band id="video" labelledBy="video-title" tone="dark" rail>
+          <SectionTitle id="video-title">Watch it run on a real laptop</SectionTitle>
+          <p className="mb-6 max-w-[680px] text-white/85">
+            Two minutes, narrated and captioned, recorded from the tool itself on the test machine. The computer name
+            and one project folder are covered.
+          </p>
+          <video controls preload="none" playsInline poster={video.poster ?? undefined}
+            className="aspect-video h-auto w-full rounded-lg border border-white/15 bg-black shadow-[0_20px_60px_rgba(0,0,0,.45)]">
             <source src={video.src} type="video/mp4" />
             {video.captions && <track kind="captions" src={video.captions} srcLang="en" label="English" />}
             Your browser cannot play this video.
           </video>
-        </section>
+        </Band>
       )}
 
-      <section aria-labelledby="rooms-title">
+      <Band id="rooms" labelledBy="rooms-title" rail>
         <SectionTitle id="rooms-title">Two rooms</SectionTitle>
-        <p className="mb-6 max-w-3xl">
+        <p className="mb-6 max-w-[720px]">
           Your room holds 13 fake secrets of the kinds attackers look for. The spare room is a separate Windows account
           with nothing in it. Each step replays what the real tool recorded.
         </p>
         <TwoRooms />
-      </section>
+      </Band>
 
       {doctor && (
-        <section aria-labelledby="tools-title">
+        <Band id="tools" labelledBy="tools-title" tone="mist" rail>
           <SectionTitle id="tools-title">Can I do my coding test in the spare room?</SectionTitle>
-          <p className="mb-4 max-w-3xl">
+          <p className="mb-6 max-w-[720px]">
             Recorded inside the spare room on {doctor.ran_at.slice(0, 10)}: {ready} of {doctor.tools.length} coding
             tools were available there. Anything installed only in your own account is not, so install it for all users.
           </p>
-          <div className="rounded-md border border-line bg-card">
+          <div className="overflow-hidden rounded-lg border border-line bg-card">
             <table className="w-full table-fixed text-[15px]">
               <caption className="sr-only">Coding tools found inside the spare room</caption>
               <thead>
                 <tr className="border-b border-line text-left">
-                  <th scope="col" className="px-3 py-2.5 font-medium sm:px-4">Tool</th>
-                  <th scope="col" className="px-3 py-2.5 font-medium sm:px-4">In the spare room</th>
+                  <th scope="col" className="px-3 py-3 font-bold sm:px-5">Tool</th>
+                  <th scope="col" className="px-3 py-3 font-bold sm:px-5">In the spare room</th>
                 </tr>
               </thead>
               <tbody>
                 {doctor.tools.map((t) => (
                   <tr key={t.name} className="border-b border-line align-top last:border-0">
-                    <th scope="row" className="w-36 px-3 py-2.5 text-left font-medium sm:w-56 sm:px-4">{t.label}</th>
-                    <td className="px-3 py-2.5 sm:px-4">
+                    <th scope="row" className="w-36 px-3 py-3 text-left font-semibold sm:w-56 sm:px-5">{t.label}</th>
+                    <td className="px-3 py-3 sm:px-5">
                       {t.found ? (
-                        <span className="text-ok">Available{t.version ? `, ${t.version}` : ""}</span>
+                        <span className="font-medium text-ok">Available{t.version ? `, ${t.version}` : ""}</span>
                       ) : (
                         <>
-                          <span className="font-medium text-high">Missing.</span>{" "}
+                          <span className="font-semibold text-high">Missing.</span>{" "}
                           {t.note && <span className="text-muted">{t.note} </span>}
                           <InstallAdvice text={t.install} />
                         </>
@@ -102,15 +131,15 @@ export default function Home() {
               </tbody>
             </table>
           </div>
-        </section>
+        </Band>
       )}
 
-      <section aria-labelledby="gaps-title">
+      <Band id="gaps" labelledBy="gaps-title" rail>
         <SectionTitle id="gaps-title">What still gets through</SectionTitle>
-        <Card>
-          <ul className="space-y-4">
-            <li>
-              <span className="font-medium">Files every account can read.</span>{" "}
+        <div className="grid gap-5 md:grid-cols-2">
+          <Card>
+            <h3 className="text-xl font-bold">Files every account can read</h3>
+            <p className="mt-2">
               {leaks.length > 0 ? (
                 <>Checked from inside the spare room, this file outside any account folder was still readable:{" "}
                   {leaks.map((p) => <Path key={p}>{p}</Path>)}. A separate account cannot protect it; move it into your
@@ -118,31 +147,34 @@ export default function Home() {
               ) : (
                 <>Checked from inside the spare room, no such file was found.</>
               )}
-            </li>
-            <li>
-              <span className="font-medium">Anything a separate account cannot stop.</span> It is weaker than a virtual
-              machine: malware with administrator rights, and your network or VPN, can still be reached.
-            </li>
-          </ul>
-        </Card>
-      </section>
-
-      <section aria-labelledby="download-title">
-        <SectionTitle id="download-title">Download</SectionTitle>
-        <p className="max-w-3xl">
-          One Windows file, no installer. Start with the safe demo mode, which touches only a fake laptop bundled
-          inside it.
+            </p>
+          </Card>
+          <Card>
+            <h3 className="text-xl font-bold">Anything a separate account cannot stop</h3>
+            <p className="mt-2">
+              It is weaker than a virtual machine: malware with administrator rights, and your network or VPN, can
+              still be reached.
+            </p>
+          </Card>
+        </div>
+        <p className="mt-8">
+          <Link href="/results/" className="inline-flex min-h-11 items-center text-lg font-semibold">See the full results</Link>
         </p>
-        <p className="mt-2">
-          <Link href="/download/" className="inline-flex min-h-11 items-center font-medium">Download Spare Room</Link>
-        </p>
-      </section>
+      </Band>
 
-      <p className="mt-10">
-        <Link href="/results/" className="inline-flex min-h-11 items-center text-lg font-medium">
-          See the full results
-        </Link>
-      </p>
-    </div>
+      <Band id="get" labelledBy="get-title" tone="accent" rail>
+        <SectionTitle id="get-title" className="[&>span]:bg-navy">Download Spare Room</SectionTitle>
+        <div className="max-w-[760px] space-y-3">
+          <p>
+            Version {recorded.tool_version} for Windows 10 and 11. One file, no installer. Start with the safe demo
+            mode: it needs no administrator rights and touches only a fake laptop bundled inside it.
+          </p>
+          {recorded.sha256 && <p>SHA-256 checksum: <Path>{recorded.sha256}</Path></p>}
+        </div>
+        <p className="mt-7">
+          <Link href="/download/" className="btn btn-navy">Download for Windows</Link>
+        </p>
+      </Band>
+    </>
   );
 }

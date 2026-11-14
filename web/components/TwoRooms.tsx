@@ -257,7 +257,7 @@ export default function TwoRooms() {
           return (
             <button key={label} type="button" onClick={() => run(i)} disabled={!enabled}
               className={`min-h-12 rounded-md border px-4 py-2.5 text-left text-[15px] font-medium transition-colors disabled:cursor-not-allowed ${
-                isNext && enabled ? "border-accent bg-accent text-white"
+                isNext && enabled ? "border-navy bg-navy text-white"
                   : done > i ? "border-accent bg-accent-soft text-ink"
                     : "border-line bg-card text-muted"}`}>
               {label}

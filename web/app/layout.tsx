@@ -1,14 +1,18 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Figtree, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
+import SiteHeader from "@/components/SiteHeader";
 import { DoorMark } from "@/components/ui";
-import { APP_NAME, REPO_URL } from "@/lib/data";
+import { APP_NAME, cov, RELEASE_URL, REPO_URL } from "@/lib/data";
 
 // next/font downloads these at build time and serves them from this site,
 // so visitors' browsers never contact a font host.
-const sans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex-sans" });
-const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono" });
+const figtree = Figtree({ subsets: ["latin"], variable: "--font-figtree", display: "swap" });
+const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono", display: "swap" });
+// Not used on the pages: tools/video/edit.mjs renders the video's cards in Plex
+// Sans from this build. Browsers only download a font a page actually uses.
+const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex-sans", preload: false });
 
 export const metadata: Metadata = {
   title: `${APP_NAME}: run the recruiter's code in a room with nothing in it`,
@@ -17,49 +21,69 @@ export const metadata: Metadata = {
   referrer: "no-referrer",
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#fafaf7" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0a1424" };
 
-const NAV = [
+const SITE_LINKS = [
   { href: "/", label: "Overview" },
   { href: "/results/", label: "Results" },
   { href: "/privacy/", label: "Privacy" },
   { href: "/download/", label: "Download" },
 ];
 
+/** The public reports the checks cite, once each, in first-seen order. */
+function sources() {
+  const seen = new Map<string, string>();
+  for (const c of cov) if (!seen.has(c.attacker_source.name)) seen.set(c.attacker_source.name, c.attacker_source.url);
+  return [...seen].map(([name, url]) => ({ name, url }));
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="en" className={`${figtree.variable} ${mono.variable} ${plexSans.variable}`}>
       <body className="min-h-screen">
-        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:rounded focus:bg-card focus:px-3 focus:py-2">
+        <a href="#main" className="sr-only z-[60] focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:rounded focus:bg-paper focus:px-3 focus:py-2 focus:text-ink">
           Skip to content
         </a>
-        <header className="border-b border-line bg-paper">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 px-4 py-2 sm:px-6">
-            <Link href="/" className="inline-flex min-h-11 items-center gap-2 text-base font-semibold text-ink no-underline">
-              <DoorMark className="h-6 w-5 text-accent" />
-              {APP_NAME}
-            </Link>
-            <nav aria-label="Main" className="-mx-2 flex flex-wrap text-[15px]">
-              {NAV.map((n) => (
-                <Link key={n.href} href={n.href}
-                  className="inline-flex min-h-11 items-center px-2 text-ink/80 no-underline hover:text-accent sm:px-3">
-                  {n.label}
-                </Link>
-              ))}
+        <SiteHeader appName={APP_NAME} />
+        <main id="main">{children}</main>
+        <footer className="on-dark bg-navy text-white">
+          <div className="wrap grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr]">
+            <div>
+              <Link href="/" className="inline-flex min-h-11 items-center gap-2.5 text-[19px] font-extrabold text-white no-underline">
+                <DoorMark className="h-7 w-6 text-accent" />{APP_NAME}
+              </Link>
+              <p className="mt-3 max-w-[420px] text-[15px] text-white/80">
+                A separate Windows account is weaker than a virtual machine. Malware with administrator rights, files
+                every user can read, and your network or VPN can still be reached.
+              </p>
+            </div>
+            <nav aria-label="Site">
+              <p className="mb-2 text-[13px] font-bold uppercase tracking-[0.08em] text-white/70">Site</p>
+              <ul>
+                {SITE_LINKS.map((l) => (
+                  <li key={l.href}><Link href={l.href} className="inline-flex min-h-11 items-center text-[16px] font-semibold text-white no-underline hover:text-accent">{l.label}</Link></li>
+                ))}
+              </ul>
+            </nav>
+            <nav aria-label="Code">
+              <p className="mb-2 text-[13px] font-bold uppercase tracking-[0.08em] text-white/70">Code</p>
+              <ul>
+                <li><a href={REPO_URL} className="inline-flex min-h-11 items-center text-[16px] font-semibold text-white no-underline hover:text-accent">Source on GitHub</a></li>
+                <li><a href={RELEASE_URL} className="inline-flex min-h-11 items-center text-[16px] font-semibold text-white no-underline hover:text-accent">Latest release</a></li>
+              </ul>
             </nav>
           </div>
-        </header>
-        <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">{children}</main>
-        <footer className="border-t border-line">
-          <div className="mx-auto max-w-5xl space-y-2 px-4 py-8 text-sm text-muted sm:px-6">
-            <p>
-              A separate Windows account is weaker than a virtual machine. Malware with administrator rights, files
-              every user can read, and your network or VPN can still be reached.
-            </p>
-            <p>
-              This site has no analytics, no cookies and no trackers. It loads nothing from other sites.{" "}
-              <a href={REPO_URL}>Source on GitHub</a>.
-            </p>
+          <div className="border-t border-white/15">
+            <div className="wrap space-y-2 py-8 text-[15px] text-white/80">
+              <p className="font-semibold text-white">Built for SafeSpace Hacks 2026.</p>
+              <p>
+                Made with Claude Code. Type: Figtree and IBM Plex Mono. Attacker targets from public reports:{" "}
+                {sources().map((s, i, a) => (
+                  <span key={s.name}><a href={s.url}>{s.name}</a>{i < a.length - 1 ? "; " : "."}</span>
+                ))}
+              </p>
+              <p>No analytics, no cookies, no trackers. This site loads nothing from other hosts.</p>
+            </div>
           </div>
         </footer>
       </body>

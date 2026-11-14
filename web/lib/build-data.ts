@@ -10,7 +10,7 @@ export function realVideo(): { src: string; captions: string | null; poster: str
   const pub = path.join(ROOT, "public");
   if (!fs.existsSync(path.join(pub, "real-demo.mp4"))) return null;
   const has = (f: string) => (fs.existsSync(path.join(pub, f)) ? `/${f}` : null);
-  return { src: "/real-demo.mp4", captions: has("real-demo.vtt"), poster: has("real-demo-poster.jpg") };
+  return { src: "/real-demo.mp4", captions: has("real-demo.vtt"), poster: has("real-demo-poster.webp") ?? has("real-demo-poster.jpg") };
 }
 
 export type DoctorTool = {

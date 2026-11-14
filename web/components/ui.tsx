@@ -28,11 +28,30 @@ export function StateTag({ state }: { state: string }) {
 }
 
 export function Path({ children }: { children: ReactNode }) {
-  return <code className="path text-[13px] text-ink/85">{children}</code>;
+  return <code className="path text-[13px]">{children}</code>;
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-md border border-line bg-card p-5 sm:p-6 ${className}`}>{children}</div>;
+  return <div className={`rounded-lg border border-line bg-card p-5 shadow-[0_1px_2px_rgba(15,28,48,.06)] sm:p-7 ${className}`}>{children}</div>;
+}
+
+type Tone = "white" | "mist" | "dark" | "accent";
+const TONE: Record<Tone, string> = {
+  white: "bg-paper text-ink",
+  mist: "bg-mist text-ink",
+  dark: "on-dark bg-navy text-white",
+  accent: "bg-accent text-navy",
+};
+
+/** A full-width band of the page; its content sits in the page frame. */
+export function Band({ children, tone = "white", id, labelledBy, rail = false, className = "" }: {
+  children: ReactNode; tone?: Tone; id?: string; labelledBy?: string; rail?: boolean; className?: string;
+}) {
+  return (
+    <section id={id} aria-labelledby={labelledBy} className={`${TONE[tone]} py-14 sm:py-20 ${className}`}>
+      <div className={`wrap ${rail ? "wrap-rail" : ""}`}>{children}</div>
+    </section>
+  );
 }
 
 /** One size for every headline number on the site; it never wraps. */
@@ -48,17 +67,23 @@ export function BigNumber({ value, label, tone = "ink" }: { value: ReactNode; la
   );
 }
 
-export function RecordedNote() {
+export function RecordedNote({ className = "text-muted" }: { className?: string }) {
   return (
-    <p className="text-sm text-muted">
+    <p className={`text-[15px] ${className}`}>
       Recorded from the real tool on a test machine on {recorded.recorded_on}. Every number and path on this site is
       replayed from that output. All secrets are fake and marked FAKE-DEMO.
     </p>
   );
 }
 
-export function SectionTitle({ children, id }: { children: ReactNode; id?: string }) {
-  return <h2 id={id} className="mt-14 mb-4 border-b border-line pb-2 text-xl font-semibold">{children}</h2>;
+/** Section heading with a short accent rule above it. */
+export function SectionTitle({ children, id, className = "" }: { children: ReactNode; id?: string; className?: string }) {
+  return (
+    <h2 id={id} className={`mt-14 mb-5 text-2xl font-bold leading-tight tracking-tight first:mt-0 sm:text-[32px] ${className}`}>
+      <span aria-hidden className="mb-4 block h-1 w-12 rounded-full bg-accent" />
+      {children}
+    </h2>
+  );
 }
 
 /** A small line-drawn door: frame, open leaf, handle. */

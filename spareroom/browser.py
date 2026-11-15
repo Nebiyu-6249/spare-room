@@ -71,18 +71,21 @@ def default_browser_command() -> Optional[str]:
 def build_command(template: str, target: str) -> str:
     """Fill the registry command template with the file's URI.
 
-    Templates use %1 (sometimes %L), quoted or not; %* is dropped. Environment
-    variables are expanded first, so a URI's own %20 escapes are never touched.
+    Templates use %1 (sometimes %L), quoted or not; %* is dropped. The target
+    goes in exactly as Windows itself would put it: a quoted placeholder keeps
+    its quotes, an unquoted one gets the bare URI. This matters for Edge and
+    Chrome, whose `--single-argument %1` takes the rest of the command line
+    literally, quotes included. A file URI has no spaces or quotes (as_uri
+    escapes them), so the bare form is safe. Environment variables are
+    expanded first, so a URI's own %20 escapes are never touched.
     """
+    if any(c in target for c in ' "\t'):
+        raise ValueError("target must be a URI without spaces or quotes")
     cmd = os.path.expandvars(template).replace("%*", "").strip()
-    quoted = f'"{target}"'
-    for token in ('"%1"', '"%L"', '"%l"'):
-        if token in cmd:
-            return cmd.replace(token, quoted, 1)
     for token in ("%1", "%L", "%l"):
         if token in cmd:
-            return cmd.replace(token, quoted, 1)
-    return f"{cmd} {quoted}"
+            return cmd.replace(token, target, 1)
+    return f'{cmd} "{target}"'
 
 
 def _quiet_env() -> dict:
@@ -105,7 +108,7 @@ def open_report(path: Path) -> str:
                 env=_quiet_env(),
             )
             return "browser"
-        except OSError:
+        except (OSError, ValueError):
             pass
     # Fallback: the old way, but keep Electron apps (VS Code and friends) off our console.
     saved = {k: os.environ.get(k) for k in QUIET_ENV}

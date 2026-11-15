@@ -42,7 +42,10 @@ def test_starts_the_default_browser_detached_and_silent(tmp_path, monkeypatch, l
 
     (cmd, kw), = launches
     uri = report.resolve().as_uri()
-    assert cmd == r'"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --single-argument "' + uri + '"'
+    # --single-argument takes the rest literally, so the URI must be bare: quotes here
+    # made Edge look up a site called "file (v0.1.4 bug).
+    assert cmd == r'"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --single-argument ' + uri
+    assert '"' not in cmd.split("--single-argument", 1)[1]
     assert "%20" in uri  # the space in the folder name survives as the URI's own escape
     assert kw["stdin"] is subprocess.DEVNULL
     assert kw["stdout"] is subprocess.DEVNULL
@@ -62,6 +65,17 @@ def test_quoted_placeholder_is_not_double_quoted(tmp_path, monkeypatch, launches
 
 def test_template_without_placeholder_gets_the_file_appended():
     assert browser.build_command(r'"C:\b\browser.exe"', "file:///x") == r'"C:\b\browser.exe" "file:///x"'
+
+
+def test_chrome_single_argument_gets_the_bare_uri():
+    chrome = r'"C:\Program Files\Google\Chrome\Application\chrome.exe" --single-argument %1'
+    assert browser.build_command(chrome, "file:///C:/a%20b/r.html") == (
+        r'"C:\Program Files\Google\Chrome\Application\chrome.exe" --single-argument file:///C:/a%20b/r.html')
+
+
+def test_target_with_a_space_is_refused():
+    with pytest.raises(ValueError):
+        browser.build_command("x.exe %1", "C:/a b/r.html")
 
 
 def _fallback_spy(monkeypatch, seen):

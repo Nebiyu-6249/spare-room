@@ -17,12 +17,12 @@ import sys
 import tempfile
 import textwrap
 import time
-import webbrowser
 from pathlib import Path
 
 from . import APP_NAME, TOOL_VERSION
 from . import accounts
 from .hardening import apply_all
+from .browser import open_report
 from .report import write_report
 from .scanner import scan, shown_path
 from .verify import groups_to_dict, verify
@@ -88,10 +88,7 @@ def cmd_report(args) -> int:
     path = write_report(report, out)
     print(f"\nReport written to {path}")
     if not args.no_open:
-        try:
-            webbrowser.open(path.resolve().as_uri())
-        except Exception:
-            print("(Could not open a browser automatically; open the file above.)")
+        _open_and_explain(path)
     return 0
 
 
@@ -401,6 +398,17 @@ Run these from PowerShell in this folder.
 """
 
 
+OPENED_IN_EDITOR_HINT = "If it opened in an editor instead of your browser, open this file in your browser."
+
+
+def _open_and_explain(path: Path) -> None:
+    """Open the report in the default browser (quietly), then say what to do if that went wrong."""
+    how = open_report(path)
+    print(OPENED_IN_EDITOR_HINT)
+    if how == "failed":
+        print("(Could not open it automatically; open the file above in your browser.)")
+
+
 def _demo_dir() -> Path:
     """Where the double-click demo writes its report: a temp folder, not wherever the exe sits."""
     return Path(tempfile.gettempdir()) / "spareroom-demo"
@@ -415,11 +423,7 @@ def cmd_double_click() -> int:
         _print_summary(report)
         path = write_report(report, _demo_dir() / "spareroom-report.html")
         print(f"\nReport written to {path}")
-        try:
-            webbrowser.open(path.resolve().as_uri())
-            print("It should open in your browser now.")
-        except Exception:
-            print("(Could not open a browser automatically; open the file above.)")
+        _open_and_explain(path)
         print()
         print(DOUBLE_CLICK_NEXT)
     except Exception as exc:  # keep the window open long enough to read what went wrong

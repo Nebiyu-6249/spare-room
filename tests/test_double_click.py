@@ -12,7 +12,7 @@ from spareroom import accounts, cli
 def test_double_click_runs_the_demo_and_waits(tmp_path, monkeypatch, capsys):
     prompts, opened, modes = [], [], []
     monkeypatch.setattr(cli, "_ask", lambda prompt="": prompts.append(prompt) or "")
-    monkeypatch.setattr(cli.webbrowser, "open", lambda url: opened.append(url) or True)
+    monkeypatch.setattr(cli, "open_report", lambda path: opened.append(path) or "browser")
     monkeypatch.setattr(cli, "_demo_dir", lambda: tmp_path / "demo-out")
 
     real_scan = cli.scan
@@ -30,8 +30,7 @@ def test_double_click_runs_the_demo_and_waits(tmp_path, monkeypatch, capsys):
     assert modes == ["demo"], "only the bundled fake laptop may be scanned"
     report = tmp_path / "demo-out" / "spareroom-report.html"
     assert report.is_file()
-    assert opened == [report.resolve().as_uri()]
-    assert opened[0].startswith("file:")
+    assert opened == [report]
     assert prompts == ["Press Enter to close."]
 
     out = capsys.readouterr().out
@@ -39,6 +38,7 @@ def test_double_click_runs_the_demo_and_waits(tmp_path, monkeypatch, capsys):
     assert "fake laptop" in out
     assert "does not use the internet" in out
     assert "demo (fake laptop) scan" in out
+    assert "If it opened in an editor instead of your browser, open this file in your browser." in out
 
 
 def test_double_click_keeps_the_window_open_on_failure(tmp_path, monkeypatch, capsys):
@@ -58,6 +58,6 @@ def test_double_click_closes_quietly_without_a_console(tmp_path, monkeypatch):
     def eof(prompt=""):
         raise EOFError
     monkeypatch.setattr(cli, "_ask", eof)
-    monkeypatch.setattr(cli.webbrowser, "open", lambda url: True)
+    monkeypatch.setattr(cli, "open_report", lambda path: "browser")
     monkeypatch.setattr(cli, "_demo_dir", lambda: tmp_path)
     assert cli.main([]) == 0

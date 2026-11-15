@@ -346,3 +346,21 @@ Tests: 86 passing.
   exactly spareroom.exe.
 - "For judges" box at the top of the Download page and the README: double-click,
   command line, Mac/Linux from source, or just the video and the replay.
+
+### v0.1.4: the report opens in the browser, and nothing else prints into the window (2026-11-15)
+- On PCs where .html files open in VS Code, v0.1.3's report opened in VS Code,
+  which printed its startup log into the Spare Room window. spareroom/browser.py
+  now reads the default web browser from the registry (read-only):
+  http\UserChoiceLatest\ProgId (newer Windows 11), then http\UserChoice ProgId,
+  then HKCR\http, taking the first ProgId with a shell\open\command. It starts
+  that browser detached, with stdin, stdout and stderr on DEVNULL. Only if none
+  resolves does it fall back to webbrowser.open, with ELECTRON_NO_ATTACH_CONSOLE=1.
+- Found on the dev PC: the legacy UserChoice still named a removed browser
+  (no command registered), while UserChoiceLatest named Edge; hence the first step.
+- After "Report written to ...": "If it opened in an editor instead of your
+  browser, open this file in your browser." Applies to `report` too.
+- tests/test_browser.py (8 tests, registry and launch mocked, no real browser); 120 pass.
+- Not changed: the line relating the video's 13 secrets to the 25 findings.
+  The 13 are not the high findings minus the VS Code setting (two are medium:
+  Azure profile, PowerShell history; Phantom wallet and the D:\ .env are high
+  but not among the 13), so it waits for the user's wording.

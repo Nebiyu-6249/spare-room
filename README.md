@@ -13,13 +13,14 @@ Fully offline. No AI, no telemetry, no sign-in.
 >   then double-click it. Your browser may say the file isn't commonly downloaded: choose **Keep**.
 >   Windows may then say "Windows protected your PC" because the file is unsigned: choose
 >   **More info**, then **Run anyway**. It only scans a fake laptop bundled inside the file, needs
->   no admin and uses no internet. It opens a report in your browser and waits for you to press Enter.
+>   no admin and uses no internet. It opens a report in your default web browser and waits for you to press Enter.
 > - **Command line (Windows):** in PowerShell, in the download folder, run `.\spareroom.exe report --demo`
 > - **Mac or Linux:** run from source with Python 3.12:
 >   `git clone https://github.com/Nebiyu-6249/spare-room`, `cd spare-room`, then `python -m spareroom scan --demo`
 > - **Or don't run anything:** the [2-minute video](https://spare-room-demo.netlify.app/#video) and the
 >   [Two rooms demo](https://spare-room-demo.netlify.app/#rooms) on the site show the full flow.
 >
+> Current release: **v0.1.4**, 8.1 MB, SHA-256 `2f3a2e7d0e2360c6e6749fa3d991678c9907dc13bb37563f4b9855b802e928e5`.
 > Checksums for every release are in its `SHA256SUMS.txt` ([all files](https://github.com/Nebiyu-6249/spare-room/releases/latest)).
 
 - **Live demo:** https://spare-room-demo.netlify.app (replays output recorded from the real tool on a test machine)

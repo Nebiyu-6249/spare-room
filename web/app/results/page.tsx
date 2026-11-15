@@ -38,6 +38,10 @@ export default function Results() {
         <Card><BigNumber value={`${spare.filter((c) => c === "visible").length} of ${total}`}
           label="reachable from the spare room" tone="ok" /></Card>
       </div>
+      <p className="mt-4 max-w-3xl font-medium">
+        {total} of the files attackers go after most. The full scan also flags settings and other drives:{" "}
+        {scan.findings.length} findings, {bySev.high ?? 0} of them high.
+      </p>
       <p className="mb-4 mt-6 max-w-3xl">
         The same check ran once from each account against the same 13 fake secrets, kept in a folder inside your
         account. It only asks whether each file exists and can be read. It never opens a file and never uses the network.

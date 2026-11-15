@@ -7,15 +7,31 @@ about 30 seconds so stranger code runs away from your keys and wallets, and
 proves the difference by running the same harmless probe from both accounts.
 Fully offline. No AI, no telemetry, no sign-in.
 
+> **For judges**
+>
+> - **Easiest (Windows):** [download spareroom.exe](https://github.com/Nebiyu-6249/spare-room/releases/latest/download/spareroom.exe),
+>   then double-click it. Your browser may say the file isn't commonly downloaded: choose **Keep**.
+>   Windows may then say "Windows protected your PC" because the file is unsigned: choose
+>   **More info**, then **Run anyway**. It only scans a fake laptop bundled inside the file, needs
+>   no admin and uses no internet. It opens a report in your browser and waits for you to press Enter.
+> - **Command line (Windows):** in PowerShell, in the download folder, run `.\spareroom.exe report --demo`
+> - **Mac or Linux:** run from source with Python 3.12:
+>   `git clone https://github.com/Nebiyu-6249/spare-room`, `cd spare-room`, then `python -m spareroom scan --demo`
+> - **Or don't run anything:** the [2-minute video](https://spare-room-demo.netlify.app/#video) and the
+>   [Two rooms demo](https://spare-room-demo.netlify.app/#rooms) on the site show the full flow.
+>
+> Checksums for every release are in its `SHA256SUMS.txt` ([all files](https://github.com/Nebiyu-6249/spare-room/releases/latest)).
+
 - **Live demo:** https://spare-room-demo.netlify.app (replays output recorded from the real tool on a test machine)
-- **Demo video:** https://spare-room-demo.netlify.app/real-demo.mp4 (60-90 s screen recording of the real tool, captions burned in; also on the site's home page)
-- **Download:** [latest release](https://github.com/Nebiyu-6249/spare-room/releases/latest) (`spareroom.exe` + `SHA256SUMS.txt`)
+- **Demo video:** https://spare-room-demo.netlify.app/real-demo.mp4 (2-minute narrated screen recording of the real tool, captions burned in; also on the site's home page)
+- **Download:** [spareroom.exe, latest](https://github.com/Nebiyu-6249/spare-room/releases/latest/download/spareroom.exe) ([all files and `SHA256SUMS.txt`](https://github.com/Nebiyu-6249/spare-room/releases/latest))
 - **Results:** [EVALUATION.md](EVALUATION.md)
 
 ## What it does
 
 | Command | Admin? | What happens |
 |---|---|---|
+| *(no arguments, or a double-click)* | no | The safe demo: a short intro, the demo scan of the bundled fake laptop, an HTML report written to a temp folder and opened, then "Press Enter to close". Never touches your files or the network. |
 | `scan [--demo] [--json PATH]` | no | Lists what code running as you could reach, by category, with paths. Never prints a secret value. |
 | `report [--demo]` | no | Same scan, written to a local HTML report and opened. The report loads nothing external. |
 | `setup` | yes (UAC) | Creates a standard (non-admin) local account. You type its password in a Windows PowerShell window; it never passes through the tool. |

@@ -17,7 +17,7 @@ const NAV = [
  * page scrolls (or the phone menu opens) it turns white with a thin border.
  * Right: two full-height accent tiles. Phones: wordmark, Download tile, Menu.
  */
-export default function SiteHeader({ appName }: { appName: string }) {
+export default function SiteHeader({ appName, downloadUrl }: { appName: string; downloadUrl: string }) {
   const path = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -69,9 +69,9 @@ export default function SiteHeader({ appName }: { appName: string }) {
           <Link href="/#video" className="hidden items-center bg-accent px-6 text-[16px] font-bold text-navy no-underline hover:bg-[#f2b65a] lg:flex">
             Watch the demo
           </Link>
-          <Link href="/download/" className="flex items-center border-l border-navy/15 bg-accent px-4 text-[16px] font-bold text-navy no-underline hover:bg-[#f2b65a] sm:px-6">
+          <a href={downloadUrl} className="flex items-center border-l border-navy/15 bg-accent px-4 text-[16px] font-bold text-navy no-underline hover:bg-[#f2b65a] sm:px-6">
             Download
-          </Link>
+          </a>
           <button ref={menuBtn} type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="site-menu"
             className={`flex min-w-14 flex-col items-center justify-center gap-1 px-3 text-[13px] font-semibold lg:hidden ${solid ? "text-ink" : "text-white"}`}>
             <svg aria-hidden viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

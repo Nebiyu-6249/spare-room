@@ -3,7 +3,7 @@ import { HomeHero } from "@/components/Hero";
 import PageRail from "@/components/PageRail";
 import TwoRooms from "@/components/TwoRooms";
 import { Band, Card, Path, SectionTitle } from "@/components/ui";
-import { acct, BINANCE_URL, cellsFor, recorded } from "@/lib/data";
+import { acct, BINANCE_URL, cellsFor, DOWNLOAD_URL, fileSize, recorded, RELEASE_URL } from "@/lib/data";
 import { doctorRun, realVideo } from "@/lib/build-data";
 
 /** Install advice with any winget command pulled out onto its own unbroken line. */
@@ -166,13 +166,21 @@ export default function Home() {
         <SectionTitle id="get-title" className="[&>span]:bg-navy">Download Spare Room</SectionTitle>
         <div className="max-w-[760px] space-y-3">
           <p>
-            Version {recorded.tool_version} for Windows 10 and 11. One file, no installer. Start with the safe demo
-            mode: it needs no administrator rights and touches only a fake laptop bundled inside it.
+            For Windows 10 and 11. One file, no installer. Double-click it to start the safe demo: it scans only a fake
+            laptop bundled inside the file, needs no administrator rights and uses no internet.
           </p>
-          {recorded.sha256 && <p>SHA-256 checksum: <Path>{recorded.sha256}</Path></p>}
         </div>
-        <p className="mt-7">
-          <Link href="/download/" className="btn btn-navy">Download for Windows</Link>
+        <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <a href={DOWNLOAD_URL} className="btn btn-navy">Download spareroom.exe</a>
+          <span className="text-[15px] font-semibold">
+            Version {recorded.tool_version}{fileSize(recorded.size_bytes) && <>, {fileSize(recorded.size_bytes)}</>}
+          </span>
+        </div>
+        {recorded.sha256 && <p className="mt-3 text-[15px]">SHA-256: <Path>{recorded.sha256}</Path></p>}
+        <p className="mt-2 text-[15px]">
+          <a href={RELEASE_URL} className="inline-flex min-h-11 items-center">All files and checksums</a>
+          <span aria-hidden> &middot; </span>
+          <Link href="/download/" className="inline-flex min-h-11 items-center">How to run it</Link>
         </p>
       </Band>
     </>

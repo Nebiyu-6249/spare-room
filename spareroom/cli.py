@@ -14,6 +14,7 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 import textwrap
 import time
 import webbrowser
@@ -379,8 +380,62 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+# --- double-click: the safe demo --------------------------------------------
+
+DOUBLE_CLICK_INTRO = f"""\
+{APP_NAME} {TOOL_VERSION} - safe demo
+
+This demo scans a fake laptop bundled inside this file. It never reads your own
+files, needs no administrator rights and does not use the internet.
+
+It shows what code from a recruiter's coding test could reach if you ran it in
+your normal Windows account. All the secrets it finds are fake.
+"""
+
+DOUBLE_CLICK_NEXT = """\
+Next, if you want to:
+  See what code could reach on this PC:  .\\spareroom.exe report
+  Create the spare room (asks for admin): .\\spareroom.exe setup
+  All commands:                           .\\spareroom.exe --help
+Run these from PowerShell in this folder.
+"""
+
+
+def _demo_dir() -> Path:
+    """Where the double-click demo writes its report: a temp folder, not wherever the exe sits."""
+    return Path(tempfile.gettempdir()) / "spareroom-demo"
+
+
+def cmd_double_click() -> int:
+    """No arguments (a double-click on the exe): run the safe demo, open its report, then wait."""
+    print(DOUBLE_CLICK_INTRO)
+    code = 0
+    try:
+        report = scan(mode="demo", account_label="demo")
+        _print_summary(report)
+        path = write_report(report, _demo_dir() / "spareroom-report.html")
+        print(f"\nReport written to {path}")
+        try:
+            webbrowser.open(path.resolve().as_uri())
+            print("It should open in your browser now.")
+        except Exception:
+            print("(Could not open a browser automatically; open the file above.)")
+        print()
+        print(DOUBLE_CLICK_NEXT)
+    except Exception as exc:  # keep the window open long enough to read what went wrong
+        print(f"The demo could not finish: {exc}")
+        code = 1
+    try:
+        _ask("Press Enter to close.")
+    except (EOFError, KeyboardInterrupt):
+        pass
+    return code
+
+
 def main(argv=None) -> int:
     argv = sys.argv[1:] if argv is None else list(argv)
+    if not argv:
+        return cmd_double_click()
     if argv[:1] == ["probe"]:
         # The probe has its own options; hand them over untouched.
         from . import probe

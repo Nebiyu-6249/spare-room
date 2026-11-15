@@ -4,7 +4,7 @@ import { Figtree, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
 import { DoorMark } from "@/components/ui";
-import { APP_NAME, cov, RELEASE_URL, REPO_URL } from "@/lib/data";
+import { APP_NAME, cov, DOWNLOAD_URL, RELEASE_URL, REPO_URL } from "@/lib/data";
 
 // next/font downloads these at build time and serves them from this site,
 // so visitors' browsers never contact a font host.
@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main" className="sr-only z-[60] focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:rounded focus:bg-paper focus:px-3 focus:py-2 focus:text-ink">
           Skip to content
         </a>
-        <SiteHeader appName={APP_NAME} />
+        <SiteHeader appName={APP_NAME} downloadUrl={DOWNLOAD_URL} />
         <main id="main">{children}</main>
         <footer className="on-dark bg-navy text-white">
           <div className="wrap grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr]">

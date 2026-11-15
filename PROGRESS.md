@@ -334,3 +334,15 @@ Tests: 86 passing.
   accessibility 100 (FCP 1.0 s, LCP 2.2 s, TBT 90 ms, CLS 0). Local Lighthouse
   on this machine reads much lower because its CPU benchmark is ~450.
 - Deployed as a Netlify draft only; production waits for the user's yes.
+
+### v0.1.3: double-click demo and one-click download (2026-11-15)
+- `spareroom.exe` with no arguments (a double-click) runs the safe demo: a short
+  intro, the demo scan of the bundled fake laptop, the HTML report written to
+  a temp folder and opened, then "Press Enter to close". No real files, no
+  network, no admin. tests/test_double_click.py (3 tests); 111 pass.
+- Released as v0.1.3 with SHA256SUMS.txt. Every Download button on the site
+  (header tile, hero, home download band, Download page) uses
+  releases/latest/download/spareroom.exe, so the asset must stay named
+  exactly spareroom.exe.
+- "For judges" box at the top of the Download page and the README: double-click,
+  command line, Mac/Linux from source, or just the video and the replay.

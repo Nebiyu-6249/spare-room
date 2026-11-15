@@ -14,6 +14,7 @@ and writes redacted JSON only:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -113,13 +114,19 @@ def main(argv=None) -> int:
     # whatever is in dist/ right now: keep the current one unless the sums file
     # of a new release is passed explicitly.
     old_meta = OUT / "meta.json"
-    old_sha = json.loads(old_meta.read_text(encoding="utf-8")).get("sha256") if old_meta.exists() else None
+    old = json.loads(old_meta.read_text(encoding="utf-8")) if old_meta.exists() else {}
     meta = {"tool_version": TOOL_VERSION, "recorded_on": normal["ran_at"][:10],
             "machine": "Windows 11 Home laptop (test machine)"}
     if args.release_sums:
-        meta["sha256"] = Path(args.release_sums).read_text(encoding="utf-8").split()[0]
-    elif old_sha:
-        meta["sha256"] = old_sha
+        sums = Path(args.release_sums)
+        meta["sha256"] = sums.read_text(encoding="utf-8").split()[0]
+        exe = sums.parent / "spareroom.exe"
+        if exe.exists() and hashlib.sha256(exe.read_bytes()).hexdigest() == meta["sha256"]:
+            meta["size_bytes"] = exe.stat().st_size
+    else:
+        for k in ("sha256", "size_bytes"):
+            if old.get(k):
+                meta[k] = old[k]
     (OUT / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
     # 6. doctor, as recorded inside the spare room (optional). Paths are dropped.

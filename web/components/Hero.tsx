@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { DOWNLOAD_URL } from "@/lib/data";
 
 /**
  * The hero image is made at build time (tools/video/hero.mjs) from the tool's
@@ -45,7 +46,7 @@ export function HomeHero({ stats }: { stats: Stat[] }) {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/#video" className="btn btn-accent">Watch the 2-minute demo</Link>
-            <Link href="/download/" className="btn btn-ghost">Download for Windows</Link>
+            <a href={DOWNLOAD_URL} className="btn btn-ghost">Download for Windows</a>
           </div>
           <p className="mt-6 max-w-[620px] text-[15px] text-white/80">
             Built for SafeSpace Hacks 2026. Every number on this site is replayed from the real tool; all secrets are fake.

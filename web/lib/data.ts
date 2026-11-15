@@ -11,6 +11,8 @@ import setupTranscript from "@/data/setup_transcript.json";
 export const APP_NAME = "Spare Room";
 export const REPO_URL = "https://github.com/Nebiyu-6249/spare-room";
 export const RELEASE_URL = `${REPO_URL}/releases/latest`;
+/** GitHub's latest-release link: every release names its asset exactly spareroom.exe, so this is always the newest. */
+export const DOWNLOAD_URL = `${REPO_URL}/releases/latest/download/spareroom.exe`;
 export const BINANCE_URL = "https://finance.yahoo.com/markets/crypto/articles/binance-says-6-3-billion-181834232.html";
 
 export type Severity = "high" | "medium" | "info";
@@ -116,7 +118,12 @@ export const cov = coverage as {
   check_id: string | null;
   note: string;
 }[];
-export const recorded = meta as { tool_version: string; recorded_on: string; machine: string; sha256?: string };
+export const recorded = meta as { tool_version: string; recorded_on: string; machine: string; sha256?: string; size_bytes?: number };
+
+/** "8.1 MB", as Windows shows it (1 MB = 1024 x 1024 bytes). */
+export function fileSize(bytes?: number): string | null {
+  return bytes ? `${(bytes / 1048576).toFixed(1)} MB` : null;
+}
 export const setupLines = setupTranscript.lines as string[];
 
 /** Plain names for the two recorded accounts. */

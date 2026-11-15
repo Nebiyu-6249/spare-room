@@ -20,7 +20,7 @@ Fully offline. No AI, no telemetry, no sign-in.
 > - **Or don't run anything:** the [2-minute video](https://spare-room-demo.netlify.app/#video) and the
 >   [Two rooms demo](https://spare-room-demo.netlify.app/#rooms) on the site show the full flow.
 >
-> Current release: **v0.1.4**, 8.1 MB, SHA-256 `2f3a2e7d0e2360c6e6749fa3d991678c9907dc13bb37563f4b9855b802e928e5`.
+> Current release: **v0.1.5**, 8.1 MB, SHA-256 `2b110cb880df7331bbbf12363c95545aeff56d630beedb82ebd9f69c294cb215`.
 > Checksums for every release are in its `SHA256SUMS.txt` ([all files](https://github.com/Nebiyu-6249/spare-room/releases/latest)).
 
 - **Live demo:** https://spare-room-demo.netlify.app (replays output recorded from the real tool on a test machine)

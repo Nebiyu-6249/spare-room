@@ -1,7 +1,7 @@
 {
-  "tool_version": "0.1.4",
+  "tool_version": "0.1.5",
   "recorded_on": "2026-11-04",
   "machine": "Windows 11 Home laptop (test machine)",
-  "sha256": "2f3a2e7d0e2360c6e6749fa3d991678c9907dc13bb37563f4b9855b802e928e5",
-  "size_bytes": 8456612
+  "sha256": "2b110cb880df7331bbbf12363c95545aeff56d630beedb82ebd9f69c294cb215",
+  "size_bytes": 8456510
 }

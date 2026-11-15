@@ -364,3 +364,16 @@ Tests: 86 passing.
   The 13 are not the high findings minus the VS Code setting (two are medium:
   Azure profile, PowerShell history; Phantom wallet and the D:\ .env are high
   but not among the 13), so it waits for the user's wording.
+
+### v0.1.5: the report really opens in Edge and Chrome (2026-11-15)
+- User's double-click of v0.1.4 showed Edge's "can't reach this page"
+  (DNS_PROBE_FINISHED_NXDOMAIN, "typo in \"file"). Edge's registry command is
+  `msedge.exe --single-argument %1`; that switch takes the rest of the line
+  literally, so the quotes 0.1.4 put around the file URI became part of the
+  address. Reproduced on the dev PC (tab title `"file`).
+- build_command now fills the placeholder as Windows does: a quoted `"%1"`
+  keeps its quotes, a bare `%1` gets the bare URI (a file URI has no spaces or
+  quotes; anything else is refused and falls back). Checked live: Edge's tab
+  title reads "Spare Room report", from the script and from the v0.1.5 exe's
+  double-click path. 122 tests pass.
+- Released v0.1.5 with SHA256SUMS.txt; site and README show the new hash.

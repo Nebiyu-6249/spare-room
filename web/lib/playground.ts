@@ -218,7 +218,11 @@ export type RoomReport = {
   visible: Line[];                 // present and readable from this room
   blocked: Line[];                 // present, access denied
   unknown: Line[];                 // not a recorded case: "The real tool would check this"
-  notLooked: { item: Item; hint: string | null }[];  // "Spare Room doesn't look for this kind of file"
+  notLooked: { item: Item; hint: string | null }[];  // outside your folder: "Spare Room doesn't look for this kind of file"
+  // In your user folder but not a kind the scan lists. Not part of the probe's list,
+  // but the folder's recorded permissions still apply: readable from your account,
+  // blocked from the spare room (REACH.profile).
+  unlisted: { item: Item; hint: string | null; reach: Reach }[];
   inProfile: { visible: number; blocked: number; total: number };
   shared: Line[];                  // visible and outside any account folder: verify's "Readable by every account"
 };
@@ -228,11 +232,15 @@ export function describe(r: Rules, item: Item): Classification {
 }
 
 export function runProbe(r: Rules, items: Item[], room: Room): RoomReport {
-  const rep: RoomReport = { room, checked: 0, visible: [], blocked: [], unknown: [], notLooked: [],
+  const rep: RoomReport = { room, checked: 0, visible: [], blocked: [], unknown: [], notLooked: [], unlisted: [],
     inProfile: { visible: 0, blocked: 0, total: 0 }, shared: [] };
   for (const item of items) {
     const c = describe(r, item);
-    if (!c.found) { rep.notLooked.push({ item, hint: c.hint }); continue; }
+    if (!c.found) {
+      if (placeOf(r, item.path) === "profile") rep.unlisted.push({ item, hint: c.hint, reach: REACH.profile[room] });
+      else rep.notLooked.push({ item, hint: c.hint });
+      continue;
+    }
     rep.checked += 1;
     const place = placeOf(r, item.path);
     const reach = REACH[place][room];
@@ -251,9 +259,8 @@ export function runProbe(r: Rules, items: Item[], room: Room): RoomReport {
 
 // ---- the default fake laptop -----------------------------------------------
 
-/** The 13 fake secrets from the twin run, then verify's shared-folder .env. */
-export function defaultItems(r: Rules, names: Record<string, string>, recordedFindings: (Match & { path: string })[],
-  verifyShared: string[]): Item[] {
+/** The 13 fake secrets from the twin run, in the recorded order. */
+export function defaultItems(r: Rules, names: Record<string, string>, recordedFindings: (Match & { path: string })[]): Item[] {
   const home = HOME_PREFIX(r);
   const items: Item[] = r.fake_laptop.targets.map((t, i) => {
     const path = home + t.rel.replace(/\//g, "\\");
@@ -265,8 +272,16 @@ export function defaultItems(r: Rules, names: Record<string, string>, recordedFi
       fix: rec.fix, source_ref: rec.source_ref } : undefined;
     return { id: `fake-${i}`, path, origin: "fake_laptop", label: names[t.rel] ?? t.rel, match };
   });
-  verifyShared.forEach((p, i) => items.push({ id: `verify-${i}`, path: p, origin: "verify", label: ".env file" }));
   return items;
+}
+
+/** What verify, run inside the spare room, recorded as readable by every account. */
+export function verifyFindings(r: Rules, paths: string[]): Line[] {
+  return paths.map((path, i) => {
+    const c = classify(r, path);
+    if (!c.found) throw new Error(`verify recorded a path the rules do not recognise: ${path}`);
+    return { item: { id: `verify-${i}`, path, origin: "verify" as const }, match: c.match };
+  });
 }
 
 // ---- what a person can add -------------------------------------------------
@@ -303,14 +318,25 @@ export function cleanName(s: string): string {
   return s.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, " ").trim().slice(0, 60);
 }
 
-/** .env variable names only. Anything after "=" is dropped, never kept. */
-export function cleanEnvNames(raw: string): { names: string[]; droppedValues: boolean } {
+/**
+ * .env variable names only, never values. Entries are split on commas,
+ * semicolons and line breaks only; in each, only the text before the first "="
+ * is kept, and the entry is dropped unless that is a single variable name.
+ * So "PASSWORD = hunter2" keeps PASSWORD and "KEY=abc def" keeps KEY.
+ */
+export function cleanEnvNames(raw: string): { names: string[]; droppedValues: boolean; droppedEntries: boolean } {
   let droppedValues = false;
-  const names = raw.split(/[\s,;]+/).map((t) => {
-    if (t.includes("=")) droppedValues = true;
-    return t.split("=")[0];
-  }).filter((t) => /^[A-Za-z_][A-Za-z0-9_.]*$/.test(t)).slice(0, 20);
-  return { names: [...new Set(names)], droppedValues };
+  let droppedEntries = false;
+  const names: string[] = [];
+  for (const entry of raw.split(/[,;\r\n]+/)) {
+    if (!entry.trim()) continue;
+    const eq = entry.indexOf("=");
+    if (eq >= 0) droppedValues = true;
+    const name = (eq >= 0 ? entry.slice(0, eq) : entry).trim();
+    if (/^[A-Za-z_][A-Za-z0-9_.]*$/.test(name)) names.push(name);
+    else droppedEntries = true;
+  }
+  return { names: [...new Set(names)].slice(0, 20), droppedValues, droppedEntries };
 }
 
 export function buildPath(r: Rules, o: { type: AddType; where: AddWhere; variant?: Variant; fileName: string;
@@ -318,7 +344,7 @@ export function buildPath(r: Rules, o: { type: AddType; where: AddWhere; variant
   const home = HOME_PREFIX(r).slice(0, -1);
   const project = cleanName(o.project) || "take-home";
   if (o.where === "usual" && o.variant) return [home, ...o.variant.rel].join("\\");
-  const name = o.variant ? o.variant.rel[o.variant.rel.length - 1] : cleanName(o.fileName) || ".env";
+  const name = o.variant ? o.variant.rel[o.variant.rel.length - 1] : cleanName(o.fileName);
   const folder = {
     usual: home, desktop: `${home}\\Desktop`, documents: `${home}\\Documents`, project: `${home}\\projects\\${project}`,
     public: "C:\\Users\\Public\\Documents", c_dev: `C:\\dev\\${project}`, d_work: "D:\\work",

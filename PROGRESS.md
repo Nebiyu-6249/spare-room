@@ -414,3 +414,23 @@ Tests: 86 passing.
   (web/scripts/rsc-aliases.mjs, postbuild); check.mjs now serves real 404s and
   fails on any. README and DEVPOST point at the Vercel URL. The video's end card
   still shows the Netlify address, where the previous version stays up.
+
+### Playground fixes after testing on Vercel (2026-11-26)
+- Default run is exactly the recorded output: 13 visible / 0 blocked in your
+  account, 0 visible / 13 blocked in the spare room. verify's C:\dev .env left
+  the fake laptop and the probe; it now sits in its own box under the spare
+  room report. The Add form still defaults to a .env in C:\dev\take-home.
+- Files in your user folder that the scan does not list (passwords.txt in
+  Documents, id_ed25519 on the Desktop) show as readable from your account and
+  blocked from the spare room, from the recorded profile evidence. They are not
+  added to the probe's own counts.
+- .env names: split only on commas, semicolons and line breaks; keep the text
+  before the first "=" only if it is a single name ("PASSWORD = hunter2" keeps
+  PASSWORD). Tests added.
+- Layout: stranger code, then Run it, then the collapsed fake laptop and the
+  Add form. Reports show 3 probe lines plus "Show all N". Measured after the
+  jump to #try: Run buttons end at 857 px of a 900 px screen at 1440, and at
+  1209 px at 390 (limit 1266, 1.5 screens).
+- Hero line, python3 for Mac/Linux, arrow keys on file tabs, one trap shown as
+  text, form status clears on edit, no ".env" placeholder in the Adds line.
+  Form fields now use for/id labels.

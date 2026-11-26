@@ -67,7 +67,7 @@ export default function Download() {
             </Way>
             <Way n={4} title="Mac or Linux">
               <p>Run from source with Python 3.12 (standard library only):</p>
-              <Cmd label="Terminal commands">{`git clone ${REPO_URL}\ncd spare-room\npython -m spareroom scan --demo`}</Cmd>
+              <Cmd label="Terminal commands">{`git clone ${REPO_URL}\ncd spare-room\npython3 -m spareroom scan --demo`}</Cmd>
             </Way>
           </ol>
         </section>

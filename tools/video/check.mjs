@@ -103,63 +103,104 @@ for (const width of WIDTHS) {
   await ctx.close();
 }
 
-// 2. The playground, keyboard only, at both widths: default run, then a .env added to C:\dev.
+// 2. The playground, keyboard only, at both widths: default run, then passwords.txt
+//    in Documents and a .env in C:\dev. Also measures where the Run buttons sit after
+//    the jump to #try.
+const measured = [];
 for (const width of WIDTHS) {
-  const ctx = await browser.newContext({ viewport: { width, height: width <= 390 ? 844 : 900 } });
+  const height = width <= 390 ? 844 : 900;
+  const ctx = await browser.newContext({ viewport: { width, height } });
   const page = await ctx.newPage();
   const hosts = new Set();
   page.on("request", (rq) => hosts.add(new URL(rq.url()).host));
-  await page.goto(BASE + "/", { waitUntil: "networkidle" });
-  const toTry = () => page.evaluate(() => {
-    const h = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 64;
-    window.scrollTo(0, document.getElementById("try").getBoundingClientRect().top + window.scrollY - h);
-  });
-  await toTry();
+  await page.goto(BASE + "/#try", { waitUntil: "networkidle" });
   await page.waitForTimeout(300);
+  const runBox = await page.getByRole("button", { name: "Run in my account", exact: true }).boundingBox();
+  const spareBox = await page.getByRole("button", { name: "Run in the spare room", exact: true }).boundingBox();
+  const bottom = Math.round(Math.max(runBox.y + runBox.height, spareBox.y + spareBox.height));
+  measured.push({ width, viewport: height, runButtonsTop: Math.round(runBox.y), runButtonsBottom: bottom,
+    limit: width <= 390 ? Math.round(height * 1.5) : height });
+  if (width > 390 && bottom > height) problems.push(`playground@${width}: Run buttons end at ${bottom}px, below the ${height}px screen`);
+  if (width <= 390 && bottom > height * 1.5) problems.push(`playground@${width}: Run buttons end at ${bottom}px, past 1.5 screens`);
   await page.screenshot({ path: join(SHOTS, `playground-first-${width}.png`) });
 
   const press = async (name) => { await page.getByRole("button", { name, exact: true }).focus(); await page.keyboard.press("Enter"); };
   const report = (room) => page.getByRole("region", { name: `Report: ${room}` });
+  // Element shots: hide the fixed header so it does not cover the top of the element.
+  const shot = async (loc, file) => {
+    await page.evaluate(() => { document.querySelector("header").style.visibility = "hidden"; });
+    await loc.screenshot({ path: join(SHOTS, file) });
+    await page.evaluate(() => { document.querySelector("header").style.visibility = ""; });
+  };
   const expectText = async (loc, text, what) => {
     const t = await loc.innerText().catch(() => "");
     if (!t.includes(text)) problems.push(`playground@${width}: ${what}: missing "${text}"`);
   };
+  const expectNo = async (loc, text, what) => {
+    const t = await loc.innerText().catch(() => "");
+    if (t.includes(text)) problems.push(`playground@${width}: ${what}: should not show "${text}"`);
+  };
+
+  // Arrow keys move between the file tabs.
+  const tabs = page.getByRole("tab");
+  await tabs.first().focus();
+  await page.keyboard.press("ArrowRight");
+  const sel = await page.evaluate(() => document.activeElement?.getAttribute("aria-selected"));
+  if (sel !== "true") problems.push(`playground@${width}: ArrowRight did not move to the next file tab`);
+
   await press("Run in my account");
   await press("Run in the spare room");
-  await expectText(report("Your account"), "13 of 13 in your user folder", "your account");
-  await expectText(report("Your account"), "visible: 14   blocked: 0", "your account");
-  await expectText(report("The spare room"), "visible: 1   blocked: 13", "spare room");
-  await expectText(report("The spare room"), "Readable by every account:", "spare room");
+  await expectText(report("Your account"), "visible: 13   blocked: 0", "your account");
+  await expectText(report("The spare room"), "visible: 0   blocked: 13", "spare room");
+  await expectText(report("The spare room"), "Nothing found that stranger code could take from here", "spare room");
+  await expectNo(report("The spare room"), "<project>", "spare room probe");
+  await expectText(page.getByRole("region", { name: "Also found by verify" }), String.raw`C:\dev\<project>\.env`, "verify box");
   await expectText(page.locator("#try-run"), "Matches the real tool's recorded run.", "match line");
+  await expectText(report("Your account"), "Show all 13", "collapsed probe list");
   await audit(page, "playground-ran", width);
-  await page.locator("#try-run").screenshot({ path: join(SHOTS, `playground-ran-${width}.png`) });
+  await shot(page.locator("#try-run"), `playground-ran-${width}.png`);
 
-  // Add a .env to C:\dev, names only.
+  // passwords.txt in Documents.
+  await page.getByLabel("Kind of file").selectOption("any");
+  await page.getByLabel("File name").fill("passwords.txt");
+  await page.getByLabel("Where it lives").selectOption("documents");
+  await press("Add to the fake laptop");
+  // Then the form's default: a .env in C:\dev\take-home, names only.
   await page.getByLabel("Kind of file").selectOption("env");
   await page.getByLabel("Where it lives").selectOption("c_dev");
-  await page.getByLabel("Project folder name").fill("client-api");
-  await page.getByLabel("Variable names (optional)").fill("STRIPE_SECRET_KEY, DATABASE_URL");
+  await page.getByLabel("Variable names (optional)").fill("STRIPE_SECRET_KEY, PASSWORD = hunter2");
+  const formText = await page.locator("form").innerText();
+  if (!formText.includes("anything after = was dropped")) problems.push(`playground@${width}: no dropped-value note`);
   await press("Add to the fake laptop");
+  const laptop = await page.locator("main").innerText();
+  if (laptop.includes("hunter2") && !(await page.getByLabel("Variable names (optional)").inputValue()).includes("hunter2")) {
+    problems.push(`playground@${width}: a value was shown`);
+  }
   await expectText(page.locator("#try-run"), "The fake laptop changed. Run the code again", "stale note");
   await press("Run in my account");
   await press("Run in the spare room");
-  await expectText(report("Your account"), "visible: 15   blocked: 0", "your account after add");
-  await expectText(report("The spare room"), "visible: 2   blocked: 13", "spare room after add");
-  await expectText(report("The spare room"), String.raw`C:\dev\client-api\.env`, "spare room after add");
+  await expectText(report("Your account"), "visible: 14   blocked: 0", "your account after add");
+  await expectText(report("Your account"), "Stranger code can read this too. Spare Room's scan doesn't list this kind of file.", "unlisted, yours");
+  await expectText(report("Your account"), String.raw`C:\Users\testdev\Documents\passwords.txt`, "unlisted, yours");
+  await expectText(report("The spare room"), "visible: 1   blocked: 13", "spare room after add");
+  await expectText(report("The spare room"), String.raw`C:\dev\take-home\.env`, "spare room after add");
+  await expectText(report("The spare room"), "The spare room can't open anything in your user folder, including files the scan doesn't know about.", "unlisted, spare");
   await expectText(page.locator("#try-run"), "The files you added follow the tool's own rules.", "match line after add");
+  if ((await page.locator("main").innerText()).includes("hunter2")) problems.push(`playground@${width}: the value hunter2 appears outside the input`);
   await audit(page, "playground-added", width);
-  await page.locator("#try-run").screenshot({ path: join(SHOTS, `playground-cdev-${width}.png`) });
+  await shot(page.locator("#try-run"), `playground-added-${width}.png`);
 
   // Nothing outlives the tab, and Reset puts everything back.
   const stored = await page.evaluate(() => localStorage.length + sessionStorage.length + document.cookie.length);
   if (stored) problems.push(`playground@${width}: something was stored (${stored})`);
   await press("Reset");
-  if (await page.getByText(String.raw`C:\dev\client-api\.env`).count()) problems.push(`playground@${width}: Reset left the added file`);
+  if (await page.getByRole("heading", { name: "Files you added" }).count()) problems.push(`playground@${width}: Reset left the added files`);
   if (await report("Your account").count()) problems.push(`playground@${width}: Reset left a report`);
   const foreign = [...hosts].filter((h) => h !== `127.0.0.1:${PORT}`);
   if (foreign.length) problems.push(`playground@${width}: requests to other hosts: ${foreign.join(", ")}`);
   await ctx.close();
 }
+console.table(measured);
 
 await browser.close();
 server.close();

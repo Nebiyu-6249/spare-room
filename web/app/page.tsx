@@ -51,11 +51,11 @@ export default function Home() {
       ]} />
       <PageRail items={rail} />
 
-      <Band id="try" labelledBy="try-title" rail>
+      <Band id="try" labelledBy="try-title" rail className="pt-8! sm:pt-10!">
         <SectionTitle id="try-title">Try it here, no download</SectionTitle>
-        <p className="mb-6 max-w-[720px]">
-          Pick the sample stranger code, read it, then run it in your account and in the spare room. Add your own files
-          to the fake laptop and run it again.
+        <p className="mb-5 max-w-[760px]">
+          Read the sample stranger code, run it in your account and in the spare room, then add your own files and run
+          it again.
         </p>
         <Playground />
       </Band>

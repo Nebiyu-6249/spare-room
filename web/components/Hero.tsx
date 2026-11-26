@@ -52,7 +52,7 @@ export function HomeHero({ stats }: { stats: Stat[] }) {
             <Link href="/#video" className="inline-flex min-h-11 items-center text-[17px] font-semibold">Watch the 2-minute demo</Link>
           </p>
           <p className="mt-6 max-w-[620px] text-[15px] text-white/80">
-            Built for SafeSpace Hacks 2026. Every number on this site is replayed from the real tool; all secrets are fake.
+            Built for SafeSpace Hacks 2026. Every number outside the playground is replayed from the real tool; the playground simulates its rules. All secrets are fake.
           </p>
         </div>
       </div>

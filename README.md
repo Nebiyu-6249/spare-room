@@ -19,7 +19,7 @@ Fully offline. No AI, no telemetry, no sign-in.
 >   no admin and uses no internet. It opens a report in your default web browser and waits for you to press Enter.
 > - **Command line (Windows):** in PowerShell, in the download folder, run `.\spareroom.exe report --demo`
 > - **Mac or Linux:** run from source with Python 3.12:
->   `git clone https://github.com/Nebiyu-6249/spare-room`, `cd spare-room`, then `python -m spareroom scan --demo`
+>   `git clone https://github.com/Nebiyu-6249/spare-room`, `cd spare-room`, then `python3 -m spareroom scan --demo`
 > - **Or just watch:** the [2-minute video](https://spare-room-demo.vercel.app/#video) shows a real run.
 >
 > Current release: **v0.1.5**, 8.1 MB, SHA-256 `2b110cb880df7331bbbf12363c95545aeff56d630beedb82ebd9f69c294cb215`.

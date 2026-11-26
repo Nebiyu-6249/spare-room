@@ -81,7 +81,7 @@ def main(argv=None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     text = render()
     if "--check" in argv:
-        current = OUT.read_text(encoding="utf-8") if OUT.exists() else ""
+        current = OUT.read_text(encoding="utf-8").replace("\r\n", "\n") if OUT.exists() else ""
         if current != text:
             print(f"{OUT} is out of date: run python packaging/export_rules.py", file=sys.stderr)
             return 1

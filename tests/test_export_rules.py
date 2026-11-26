@@ -18,7 +18,8 @@ def _exporter():
 
 def test_committed_rules_json_matches_the_python_source():
     mod = _exporter()
-    assert mod.OUT.read_text(encoding="utf-8") == mod.render(), "run python packaging/export_rules.py"
+    committed = mod.OUT.read_text(encoding="utf-8").replace("\r\n", "\n")  # git may check it out with CRLF
+    assert committed == mod.render(), "run python packaging/export_rules.py"
 
 
 def test_rules_carry_no_secret_values_and_no_urls_but_sources():

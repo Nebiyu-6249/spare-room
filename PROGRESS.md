@@ -403,3 +403,7 @@ Tests: 86 passing.
   C:\dev, Desktop, Public, D:\, unknown-name and node_modules cases.
 - check.mjs now drives the playground by keyboard at 390 and 1440 px, runs axe in
   each state, and fails on storage or requests to other hosts. All pass.
+- Deploy (2026-11-26): production refused by Netlify, "Account credit usage
+  exceeded - new deploys are blocked until credits are added". Draft deploy
+  accepted and checked (playground runs, only its own host contacted). The live
+  site still shows the previous version until credits are added or reset.

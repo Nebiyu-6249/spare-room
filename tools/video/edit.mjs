@@ -127,7 +127,8 @@ const CARDS = {
     <div class="big"><span class="high">13 reachable</span>, then <span class="ok">0</span>.</div>
     <p>Before you run a stranger's code, give it a spare room.</p>
     <p class="small">Offline. Never reads a secret's value. Weaker than a virtual machine.</p>
-    <p class="small" style="margin-top:16px">spare-room-demo.netlify.app</p></div>`,
+    <p class="small" style="margin-top:16px">spare-room-demo.vercel.app</p>
+    <p class="small" style="margin-top:8px">Try it in your browser, no download.</p></div>`,
 };
 
 // ---- the story: 13 shots, one narration line each ---------------------------------

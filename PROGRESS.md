@@ -434,3 +434,14 @@ Tests: 86 passing.
 - Hero line, python3 for Mac/Linux, arrow keys on file tabs, one trap shown as
   text, form status clears on edit, no ".env" placeholder in the Adds line.
   Form fields now use for/id labels.
+
+### Video end card points at Vercel; scroll to the report (2026-11-26)
+- End card and poster: spare-room-demo.vercel.app, plus "Try it in your browser,
+  no download." Nothing else changed: re-rendered from the same clips and
+  narration, 117.8 s, -16.4 LUFS, true peak -1.3 dBFS (as before), same 3532
+  frames, real-demo.vtt byte-identical. Frames before the end card differ only
+  by encoder noise (lowest PSNR 44.2 dB).
+- Playground: after a run, if the report's big number is below the screen, the
+  page scrolls by the least amount that shows it (instant with reduced motion).
+  Live: 1440 px keeps the Run buttons in view; at 390 px the spare room's report
+  sits under the first one, so its run scrolls the buttons away.

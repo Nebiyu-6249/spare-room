@@ -148,8 +148,20 @@ for (const width of WIDTHS) {
   const sel = await page.evaluate(() => document.activeElement?.getAttribute("aria-selected"));
   if (sel !== "true") problems.push(`playground@${width}: ArrowRight did not move to the next file tab`);
 
-  await press("Run in my account");
-  await press("Run in the spare room");
+  // After each run the report's big number is on screen; at desktop size the Run buttons stay in view too.
+  const inView = async (room) => page.evaluate((r) => {
+    const big = document.querySelector(`[data-big-number="${r}"]`).getBoundingClientRect();
+    const btn = [...document.querySelectorAll("button")].find((x) => x.textContent.trim() === "Run in my account").getBoundingClientRect();
+    const head = document.querySelector("header").getBoundingClientRect().bottom;
+    return { big: big.top >= head && big.bottom <= innerHeight, buttons: btn.top >= head && btn.bottom <= innerHeight };
+  }, room);
+  for (const [name, room] of [["Run in my account", "yours"], ["Run in the spare room", "spare"]]) {
+    await press(name);
+    await page.waitForTimeout(900); // let the smooth scroll finish
+    const v = await inView(room);
+    if (!v.big) problems.push(`playground@${width}: after "${name}" the big number is off screen`);
+    if (width > 390 && !v.buttons) problems.push(`playground@${width}: after "${name}" the Run buttons left the screen`);
+  }
   await expectText(report("Your account"), "visible: 13   blocked: 0", "your account");
   await expectText(report("The spare room"), "visible: 0   blocked: 13", "spare room");
   await expectText(report("The spare room"), "Nothing found that stranger code could take from here", "spare room");

@@ -5,7 +5,7 @@
 // typed here leaves the page. The rules come from data/rules.json, generated
 // from the Python source; see lib/playground.ts for what is and is not simulated.
 
-import { useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import rulesJson from "@/data/rules.json";
 import { SeverityTag } from "@/components/ui";
 import { acct, REPO_URL, scan, SHORT_NAMES } from "@/lib/data";
@@ -184,7 +184,7 @@ function Report({ rep, trap, stale }: { rep: RoomReport; trap: Rules["traps"][nu
       className={`rounded-lg border border-line bg-card p-4 sm:p-5 ${stale ? "opacity-50" : ""}`}>
       <h4 className="text-lg font-bold">{ROOM_TITLE[rep.room]}</h4>
       <p className="mt-3 flex items-baseline gap-3">
-        <span className={`text-5xl font-semibold leading-none tabular-nums ${n ? "text-high" : "text-ok"}`}>{n}</span>
+        <span data-big-number={rep.room} className={`text-5xl font-semibold leading-none tabular-nums ${n ? "text-high" : "text-ok"}`}>{n}</span>
         <span className="text-[15px] font-semibold">{headline}</span>
       </p>
       <p className="mt-2 text-[15px]">
@@ -454,6 +454,7 @@ export default function Playground() {
   const [reports, setReports] = useState<Partial<Record<Room, RoomReport>>>({});
   const [ranWith, setRanWith] = useState<Partial<Record<Room, string>>>({});
   const [runs, setRuns] = useState(0);
+  const [lastRun, setLastRun] = useState<Room | null>(null);
   const [announce, setAnnounce] = useState("");
   const [resetKey, setResetKey] = useState(0);
   const items = useMemo(() => [...BASE, ...added], [added]);
@@ -465,6 +466,7 @@ export default function Playground() {
     setReports((r) => ({ ...r, [room]: rep }));
     setRanWith((r) => ({ ...r, [room]: stateKey }));
     setRuns((n) => n + 1);
+    setLastRun(room);
     setAnnounce(`${ROOM_TITLE[room]}: ${rep.visible.length} visible, ${rep.blocked.length} blocked.`);
   };
   const reset = () => {
@@ -472,9 +474,23 @@ export default function Playground() {
     setTrapId(rules.traps[0].id);
     setReports({});
     setRanWith({});
+    setLastRun(null);
     setResetKey((k) => k + 1);
     setAnnounce("Everything is back to the fake laptop from the video.");
   };
+  // After a run, if that report's big number is below the screen, scroll by the
+  // least amount that shows it. That keeps the Run buttons in view whenever the
+  // screen is tall enough to hold both. Instant if reduced motion is preferred.
+  useEffect(() => {
+    if (!lastRun) return;
+    const big = document.querySelector<HTMLElement>(`[data-big-number="${lastRun}"]`);
+    if (!big) return;
+    const bottom = big.getBoundingClientRect().bottom;
+    if (bottom <= window.innerHeight) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollBy({ top: bottom - window.innerHeight + 24, behavior: reduced ? "auto" : "smooth" });
+  }, [runs, lastRun]);
+
   const ran = Object.keys(reports) as Room[];
   const stale = (room: Room) => ranWith[room] !== undefined && ranWith[room] !== stateKey;
   const anyStale = ran.some(stale);

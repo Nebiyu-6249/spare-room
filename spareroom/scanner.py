@@ -109,7 +109,7 @@ def _check_npmrc(spec: L.LocationSpec, home: Path) -> Iterator[Finding]:
             for line in fh:
                 key = line.split("=", 1)[0].strip().lower()
                 # Key names only; the value after "=" is never read or kept.
-                if key.endswith("_authtoken") or key.endswith("_auth") or key.endswith(":_password"):
+                if key.endswith(L.NPMRC_TOKEN_KEY_SUFFIXES):
                     has_token = True
                     break
     except OSError:
@@ -159,11 +159,7 @@ def _check_vscode_user(spec: L.LocationSpec, home: Path) -> Iterator[Finding]:
 
 
 def _check_claude(spec: L.LocationSpec, home: Path) -> Iterator[Finding]:
-    candidates = [
-        (home / ".claude" / ".credentials.json", "Claude Code stored credentials", "high"),
-        (home / ".claude.json", "Claude Code account config", "medium"),
-        (home / ".claude" / "settings.json", "Claude Code settings (may define startup hooks)", "info"),
-    ]
+    candidates = [(home.joinpath(*rel), kind, severity) for rel, kind, severity in L.CLAUDE_FILES]
     for i, (path, kind, severity) in enumerate(candidates):
         if _exists(path):
             yield Finding(f"{spec.id}-{i}", spec.category, str(path), kind, severity,
@@ -178,32 +174,25 @@ def _check_wallets_and_stores(home: Path) -> Tuple[List[Finding], int]:
     for browser, rel in L.BROWSER_USER_DATA:
         user_data = home.joinpath(*rel)
         # Local State lives once at the User Data root (holds the decryption key).
-        ls = user_data / "Local State"
+        ls_name, ls_kind, ls_severity, ls_reason = L.BROWSER_LOCAL_STATE
+        ls = user_data / ls_name
         checked += 1
         if _exists(ls):
             findings.append(Finding(
                 f"browser-{browser}-local_state".lower(), "browser_store", str(ls),
-                f"{browser}: browser master key", "medium",
-                "Local State holds the key that decrypts the saved-password DB.",
-                "Keep browsers signed out in the interview account; do not sync profiles there.",
+                f"{browser}: {ls_kind}", ls_severity, ls_reason, L.BROWSER_FIX,
                 L.SRC_T1555_003))
         for profile in L.BROWSER_PROFILES:
             prof = user_data / profile
             # Saved-password and autofill stores (browser_store), per profile.
-            for fname, kind, severity, reason in (
-                ("Login Data", "saved browser passwords", "high",
-                 "Chromium stores site logins in Login Data (MITRE T1555.003). Stranger code can copy the DB and the key."),
-                ("Web Data", "saved autofill and cards", "medium",
-                 "Web Data holds autofill entries and saved payment cards."),
-            ):
+            for fname, kind, severity, reason in L.BROWSER_STORE_FILES:
                 path = prof / fname
                 checked += 1
                 if _exists(path):
                     findings.append(Finding(
                         f"browser-{browser}-{profile}-{fname}".replace(" ", "_").lower(),
                         "browser_store", str(path), f"{browser}: {kind}", severity,
-                        reason, "Keep browsers signed out in the interview account; do not sync profiles there.",
-                        L.SRC_T1555_003))
+                        reason, L.BROWSER_FIX, L.SRC_T1555_003))
             # Wallet extension storage (wallet_extension).
             les = prof / "Local Extension Settings"
             for extid, name in L.WALLET_EXTENSIONS.items():
@@ -212,9 +201,8 @@ def _check_wallets_and_stores(home: Path) -> Tuple[List[Finding], int]:
                 if _exists(path):
                     findings.append(Finding(
                         f"wallet-{browser}-{profile}-{extid}".lower(),
-                        "wallet_extension", str(path), f"{name} wallet ({browser})", "high",
-                        f"{name}'s browser-extension storage is present. BeaverTail enumerates these wallet extension IDs.",
-                        "Do not install wallet extensions in the account where you run stranger code.",
+                        "wallet_extension", str(path), L.WALLET_EXT_KIND.format(name=name, browser=browser),
+                        L.WALLET_EXT_SEVERITY, L.WALLET_EXT_REASON.format(name=name), L.WALLET_EXT_FIX,
                         L.SRC_UNIT42))
     return findings, checked
 
@@ -246,10 +234,7 @@ def _check_env_files(drives: List[Path], deadline: float = None) -> Tuple[List[F
                         continue
                     findings.append(Finding(
                         f"env-{len(findings)}", "env_file", str(path),
-                        "environment file", "high",
-                        "A .env usually holds API keys and connection strings. InvisibleFerret collects .env files across all drives, skipping node_modules.",
-                        "Keep project .env files out of the interview account, or load secrets from a vault.",
-                        L.SRC_UNIT42))
+                        L.ENV_KIND, L.ENV_SEVERITY, L.ENV_REASON, L.ENV_FIX, L.SRC_UNIT42))
         if truncated:
             findings.append(Finding(
                 f"env-timelimited-{drive_str}".replace("\\", "").replace(":", "").lower(),

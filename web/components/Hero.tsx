@@ -45,9 +45,12 @@ export function HomeHero({ stats }: { stats: Stat[] }) {
             the spare room, where it reaches nothing that matters.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/#video" className="btn btn-accent">Watch the 2-minute demo</Link>
+            <Link href="/#try" className="btn btn-accent">Try it here, no download</Link>
             <a href={DOWNLOAD_URL} className="btn btn-ghost">Download for Windows</a>
           </div>
+          <p className="mt-4">
+            <Link href="/#video" className="inline-flex min-h-11 items-center text-[17px] font-semibold">Watch the 2-minute demo</Link>
+          </p>
           <p className="mt-6 max-w-[620px] text-[15px] text-white/80">
             Built for SafeSpace Hacks 2026. Every number on this site is replayed from the real tool; all secrets are fake.
           </p>

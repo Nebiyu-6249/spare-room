@@ -122,4 +122,7 @@ body {
 .btn-navy:hover { background: var(--navy-2); }
 .btn-ghost { border: 2px solid rgba(255, 255, 255, 0.85); color: #fff; }
 .btn-ghost:hover { background: rgba(255, 255, 255, 0.12); }
+.btn-outline { border: 2px solid var(--navy); color: var(--navy); background: var(--card); }
+.btn-outline:hover { background: var(--mist); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 }

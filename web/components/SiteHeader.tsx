@@ -15,7 +15,7 @@ const NAV = [
 /**
  * Sticky header. Over the dark hero it is transparent with white text; once the
  * page scrolls (or the phone menu opens) it turns white with a thin border.
- * Right: two full-height accent tiles. Phones: wordmark, Download tile, Menu.
+ * Right: two full-height accent tiles. Phones: wordmark, Try it here tile, Menu.
  */
 export default function SiteHeader({ appName, downloadUrl }: { appName: string; downloadUrl: string }) {
   const path = usePathname();
@@ -66,10 +66,10 @@ export default function SiteHeader({ appName, downloadUrl }: { appName: string; 
         </nav>
 
         <div className="ml-auto flex items-stretch">
-          <Link href="/#video" className="hidden items-center bg-accent px-6 text-[16px] font-bold text-navy no-underline hover:bg-[#f2b65a] lg:flex">
-            Watch the demo
+          <Link href="/#try" className="flex items-center bg-accent px-4 text-[16px] font-bold text-navy no-underline hover:bg-[#f2b65a] sm:px-6">
+            Try it here
           </Link>
-          <a href={downloadUrl} className="flex items-center border-l border-navy/15 bg-accent px-4 text-[16px] font-bold text-navy no-underline hover:bg-[#f2b65a] sm:px-6">
+          <a href={downloadUrl} className="hidden items-center border-l border-navy/15 bg-accent px-6 text-[16px] font-bold text-navy no-underline hover:bg-[#f2b65a] lg:flex">
             Download
           </a>
           <button ref={menuBtn} type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="site-menu"

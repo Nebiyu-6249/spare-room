@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { HomeHero } from "@/components/Hero";
 import PageRail from "@/components/PageRail";
-import TwoRooms from "@/components/TwoRooms";
+import Playground from "@/components/Playground";
 import { Band, Card, Path, SectionTitle } from "@/components/ui";
 import { acct, BINANCE_URL, cellsFor, DOWNLOAD_URL, fileSize, recorded, RELEASE_URL } from "@/lib/data";
 import { doctorRun, realVideo } from "@/lib/build-data";
@@ -25,12 +25,12 @@ function InstallAdvice({ text }: { text: string }) {
 }
 
 const RAIL = [
+  { id: "try", label: "Try it here" },
+  { id: "get", label: "Run the real tool" },
   { id: "overview", label: "Overview" },
   { id: "video", label: "Demo video" },
-  { id: "rooms", label: "Two rooms" },
   { id: "tools", label: "Your coding test" },
   { id: "gaps", label: "What gets through" },
-  { id: "get", label: "Download" },
 ];
 
 export default function Home() {
@@ -50,6 +50,37 @@ export default function Home() {
         { value: `${acct.setup_wall_s} s`, label: "to set up", mark: "time" },
       ]} />
       <PageRail items={rail} />
+
+      <Band id="try" labelledBy="try-title" rail>
+        <SectionTitle id="try-title">Try it here, no download</SectionTitle>
+        <p className="mb-6 max-w-[720px]">
+          Pick the sample stranger code, read it, then run it in your account and in the spare room. Add your own files
+          to the fake laptop and run it again.
+        </p>
+        <Playground />
+      </Band>
+
+      <Band id="get" labelledBy="get-title" tone="accent" rail className="py-10! sm:py-12!">
+        <SectionTitle id="get-title" className="[&>span]:bg-navy">Run the real tool</SectionTitle>
+        <div className="max-w-[760px] space-y-3">
+          <p>
+            For Windows 10 and 11. One file, no installer. Double-click it to start the safe demo: it scans only a fake
+            laptop bundled inside the file, needs no administrator rights and uses no internet.
+          </p>
+        </div>
+        <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <a href={DOWNLOAD_URL} className="btn btn-navy">Download spareroom.exe</a>
+          <span className="text-[15px] font-semibold">
+            Version {recorded.tool_version}{fileSize(recorded.size_bytes) && <>, {fileSize(recorded.size_bytes)}</>}
+          </span>
+        </div>
+        {recorded.sha256 && <p className="mt-3 text-[15px]">SHA-256: <Path>{recorded.sha256}</Path></p>}
+        <p className="mt-2 text-[15px]">
+          <a href={RELEASE_URL} className="inline-flex min-h-11 items-center">All files and checksums</a>
+          <span aria-hidden> &middot; </span>
+          <Link href="/download/" className="inline-flex min-h-11 items-center">How to run it</Link>
+        </p>
+      </Band>
 
       <Band id="overview" labelledBy="overview-title" rail>
         <h2 id="overview-title" className="sr-only">Overview</h2>
@@ -86,14 +117,6 @@ export default function Home() {
         </Band>
       )}
 
-      <Band id="rooms" labelledBy="rooms-title" rail>
-        <SectionTitle id="rooms-title">Two rooms</SectionTitle>
-        <p className="mb-6 max-w-[720px]">
-          Your room holds 13 fake secrets of the kinds attackers look for. The spare room is a separate Windows account
-          with nothing in it. Each step replays what the real tool recorded.
-        </p>
-        <TwoRooms />
-      </Band>
 
       {doctor && (
         <Band id="tools" labelledBy="tools-title" tone="mist" rail>
@@ -162,27 +185,6 @@ export default function Home() {
         </p>
       </Band>
 
-      <Band id="get" labelledBy="get-title" tone="accent" rail>
-        <SectionTitle id="get-title" className="[&>span]:bg-navy">Download Spare Room</SectionTitle>
-        <div className="max-w-[760px] space-y-3">
-          <p>
-            For Windows 10 and 11. One file, no installer. Double-click it to start the safe demo: it scans only a fake
-            laptop bundled inside the file, needs no administrator rights and uses no internet.
-          </p>
-        </div>
-        <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
-          <a href={DOWNLOAD_URL} className="btn btn-navy">Download spareroom.exe</a>
-          <span className="text-[15px] font-semibold">
-            Version {recorded.tool_version}{fileSize(recorded.size_bytes) && <>, {fileSize(recorded.size_bytes)}</>}
-          </span>
-        </div>
-        {recorded.sha256 && <p className="mt-3 text-[15px]">SHA-256: <Path>{recorded.sha256}</Path></p>}
-        <p className="mt-2 text-[15px]">
-          <a href={RELEASE_URL} className="inline-flex min-h-11 items-center">All files and checksums</a>
-          <span aria-hidden> &middot; </span>
-          <Link href="/download/" className="inline-flex min-h-11 items-center">How to run it</Link>
-        </p>
-      </Band>
     </>
   );
 }

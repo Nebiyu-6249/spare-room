@@ -4,8 +4,10 @@
   "description": "Browser demo for Spare Room, replaying recorded output",
   "scripts": {
     "dev": "next dev",
+    "prebuild": "python ../packaging/export_rules.py && node --test tests/",
     "build": "next build",
-    "postbuild": "node ../tools/video/hero.mjs"
+    "postbuild": "node ../tools/video/hero.mjs",
+    "test": "node --test tests/"
   },
   "license": "UNLICENSED",
   "dependencies": {

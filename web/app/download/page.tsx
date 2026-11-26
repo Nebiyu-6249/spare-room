@@ -37,10 +37,15 @@ export default function Download() {
         <section aria-labelledby="judges-title"
           className="max-w-[860px] rounded-lg border-2 border-accent bg-accent-soft p-5 sm:p-8">
           <h2 id="judges-title" className="text-2xl font-extrabold tracking-tight sm:text-[30px]">For judges</h2>
-          <p className="mt-1 text-muted">Four ways to see it, from easiest to none at all.</p>
+          <p className="mt-1 text-muted">Start in the browser; nothing to download. The real tool is the second option.</p>
 
           <ol className="mt-6 space-y-6">
-            <Way n={1} title="Easiest (Windows)">
+            <Way n={1} title="No download: try it in your browser">
+              <p>The <Link href="/#try">playground on the home page</Link> runs the same sample stranger code in your
+                account and in the spare room, on a fake laptop, using Spare Room&apos;s own rules. Add your own files and
+                run it again. The <Link href="/#video">2-minute video</Link> shows a real run.</p>
+            </Way>
+            <Way n={2} title="Run the real tool (Windows)">
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                 <a href={DOWNLOAD_URL} className="btn btn-navy">Download spareroom.exe</a>
                 <span className="text-[15px] font-semibold">Version {recorded.tool_version}{size && <>, {size}</>}</span>
@@ -56,17 +61,13 @@ export default function Download() {
               <p>It only scans a fake laptop bundled inside the file, needs no admin and uses no internet. It opens a
                 report in your browser and waits for you to press Enter.</p>
             </Way>
-            <Way n={2} title="Command line (Windows)">
+            <Way n={3} title="Command line (Windows)">
               <p>In PowerShell, in the download folder, run:</p>
               <Cmd label="PowerShell command">{".\\spareroom.exe report --demo"}</Cmd>
             </Way>
-            <Way n={3} title="Mac or Linux">
+            <Way n={4} title="Mac or Linux">
               <p>Run from source with Python 3.12 (standard library only):</p>
               <Cmd label="Terminal commands">{`git clone ${REPO_URL}\ncd spare-room\npython -m spareroom scan --demo`}</Cmd>
-            </Way>
-            <Way n={4} title="Or don't run anything">
-              <p>The <Link href="/#video">2-minute video</Link> and the <Link href="/#rooms">Two rooms demo</Link> on
-                the home page show the full flow, replayed from the real tool.</p>
             </Way>
           </ol>
         </section>

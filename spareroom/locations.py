@@ -79,6 +79,46 @@ ENV_SKIP_DIRS = {
 }
 ENV_MAX_DEPTH = 8  # keep the walk bounded so a scan stays under a minute
 
+# --- Finding text for the scanner-driven checks --------------------------------
+# Kept here, beside the specs, so the web playground can be generated from the
+# same rules (packaging/export_rules.py) and the two cannot drift apart.
+
+# .npmrc: a line whose key (the part before "=") ends with one of these, lowercased,
+# is an auth token. Only the key name is looked at; the value is never read.
+NPMRC_TOKEN_KEY_SUFFIXES = ("_authtoken", "_auth", ":_password")
+
+# Claude Code files under the home dir: (path parts, kind, severity).
+CLAUDE_FILES = (
+    ((".claude", ".credentials.json"), "Claude Code stored credentials", "high"),
+    ((".claude.json",), "Claude Code account config", "medium"),
+    ((".claude", "settings.json"), "Claude Code settings (may define startup hooks)", "info"),
+)
+
+BROWSER_FIX = "Keep browsers signed out in the interview account; do not sync profiles there."
+# Once per browser, at the User Data root: (file name, kind suffix, severity, reason).
+BROWSER_LOCAL_STATE = ("Local State", "browser master key", "medium",
+                       "Local State holds the key that decrypts the saved-password DB.")
+# Per browser profile: (file name, kind suffix, severity, reason). Kind is "<browser>: <suffix>".
+BROWSER_STORE_FILES = (
+    ("Login Data", "saved browser passwords", "high",
+     "Chromium stores site logins in Login Data (MITRE T1555.003). Stranger code can copy the DB and the key."),
+    ("Web Data", "saved autofill and cards", "medium",
+     "Web Data holds autofill entries and saved payment cards."),
+)
+
+# Wallet extension storage: "{name}" and "{browser}" are filled in per hit.
+WALLET_EXT_KIND = "{name} wallet ({browser})"
+WALLET_EXT_SEVERITY = "high"
+WALLET_EXT_REASON = "{name}'s browser-extension storage is present. BeaverTail enumerates these wallet extension IDs."
+WALLET_EXT_FIX = "Do not install wallet extensions in the account where you run stranger code."
+
+# A readable .env found by the all-drive hunt.
+ENV_KIND = "environment file"
+ENV_SEVERITY = "high"
+ENV_REASON = ("A .env usually holds API keys and connection strings. InvisibleFerret collects .env files across "
+              "all drives, skipping node_modules.")
+ENV_FIX = "Keep project .env files out of the interview account, or load secrets from a vault."
+
 
 @dataclass(frozen=True)
 class LocationSpec:

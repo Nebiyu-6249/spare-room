@@ -377,3 +377,29 @@ Tests: 86 passing.
   title reads "Spare Room report", from the script and from the v0.1.5 exe's
   double-click path. 122 tests pass.
 - Released v0.1.5 with SHA256SUMS.txt; site and README show the new hash.
+
+### Playground: "Try it here, no download" (2026-11-26)
+- The home page's Two rooms replay is now a hands-on playground right under the
+  hero: the fake laptop (the 13 FAKE-DEMO secrets plus verify's C:\dev .env),
+  the sample stranger code from traps/ shown file by file, "Run in my account",
+  "Run in the spare room", "Add a file" and Reset. The download moved to a
+  smaller "Run the real tool" section below it; hero, header tile, judges box
+  and README now offer the playground first.
+- Rules are generated, not copied: packaging/export_rules.py dumps locations,
+  categories, severities, the .npmrc key-name patterns, finding text, the fake
+  laptop's targets and the trap fixtures into web/data/rules.json before every
+  build (web "prebuild"); tests/test_export_rules.py fails if it is stale. The
+  scanner's inline finding text moved into locations.py constants for this; the
+  demo scan's 25 findings are unchanged field for field.
+- Reachability uses recorded cases only: your user folder (twin run: 13 visible,
+  then 13 blocked; verify: 12 of 12 out of reach) and C:\dev (verify read a .env
+  there from the spare room). No Microsoft page found states default permissions
+  for C:\Users\Public or another drive, so those show "The real tool would check
+  this". A real verify run with fake files in Public and on D:\ would settle them.
+- Only one trap fixture exists (traps/vscode_task), so the picker offers that one.
+- web/tests/playground.test.ts (node --test, 9 tests): the default fake laptop
+  matches the recorded run (13 visible, then 0 visible and 13 blocked, plus the
+  shared .env), the rules classify the 13 as the recorded scan did, and the
+  C:\dev, Desktop, Public, D:\, unknown-name and node_modules cases.
+- check.mjs now drives the playground by keyboard at 390 and 1440 px, runs axe in
+  each state, and fails on storage or requests to other hosts. All pass.

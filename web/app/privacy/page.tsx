@@ -70,6 +70,7 @@ export default function Privacy() {
       <List items={[
         "Static pages replaying output recorded from the real tool on a test machine. Paths are redacted, and other people's accounts are left out.",
         "No analytics, no cookies, no trackers. Fonts and the video are served from this site, so your browser contacts no other host.",
+        "The playground on the home page runs entirely in your browser. File names and .env variable names you type stay in the page: they are not sent anywhere or stored, and they are gone when you reset or close the tab. It never asks for values.",
       ]} />
       </div></Band>
     </>

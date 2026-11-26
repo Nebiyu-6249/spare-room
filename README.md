@@ -9,7 +9,7 @@ Fully offline. No AI, no telemetry, no sign-in.
 
 > **For judges**
 >
-> - **No download:** [try it in your browser](https://spare-room-demo.netlify.app/#try). A playground runs the
+> - **No download:** [try it in your browser](https://spare-room-demo.vercel.app/#try). A playground runs the
 >   sample stranger code in your account and in the spare room on a fake laptop, using the tool's own rules
 >   (generated from the Python source). Add your own files and run it again.
 > - **Run the real tool (Windows):** [download spareroom.exe](https://github.com/Nebiyu-6249/spare-room/releases/latest/download/spareroom.exe),
@@ -20,14 +20,14 @@ Fully offline. No AI, no telemetry, no sign-in.
 > - **Command line (Windows):** in PowerShell, in the download folder, run `.\spareroom.exe report --demo`
 > - **Mac or Linux:** run from source with Python 3.12:
 >   `git clone https://github.com/Nebiyu-6249/spare-room`, `cd spare-room`, then `python -m spareroom scan --demo`
-> - **Or just watch:** the [2-minute video](https://spare-room-demo.netlify.app/#video) shows a real run.
+> - **Or just watch:** the [2-minute video](https://spare-room-demo.vercel.app/#video) shows a real run.
 >
 > Current release: **v0.1.5**, 8.1 MB, SHA-256 `2b110cb880df7331bbbf12363c95545aeff56d630beedb82ebd9f69c294cb215`.
 > Checksums for every release are in its `SHA256SUMS.txt` ([all files](https://github.com/Nebiyu-6249/spare-room/releases/latest)).
 
-- **Live demo:** https://spare-room-demo.netlify.app (a playground that simulates the tool's own rules in your
+- **Live demo:** https://spare-room-demo.vercel.app (a playground that simulates the tool's own rules in your
   browser, plus results and a video recorded from the real tool on a test machine)
-- **Demo video:** https://spare-room-demo.netlify.app/real-demo.mp4 (2-minute narrated screen recording of the real tool, captions burned in; also on the site's home page)
+- **Demo video:** https://spare-room-demo.vercel.app/real-demo.mp4 (2-minute narrated screen recording of the real tool, captions burned in; also on the site's home page)
 - **Download:** [spareroom.exe, latest](https://github.com/Nebiyu-6249/spare-room/releases/latest/download/spareroom.exe) ([all files and `SHA256SUMS.txt`](https://github.com/Nebiyu-6249/spare-room/releases/latest))
 - **Results:** [EVALUATION.md](EVALUATION.md)
 

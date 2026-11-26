@@ -22,8 +22,9 @@ const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/cs
   ".json": "application/json", ".txt": "text/plain", ".jpg": "image/jpeg", ".mp4": "video/mp4", ".vtt": "text/vtt", ".webp": "image/webp", ".svg": "image/svg+xml" };
 const server = createServer(async (req, res) => {
   let file = join(SITE, decodeURIComponent(new URL(req.url, "http://x").pathname));
-  try { if ((await stat(file)).isDirectory()) file = join(file, "index.html"); } catch { file = join(SITE, "404.html"); }
-  try { res.writeHead(200, { "content-type": TYPES[extname(file)] ?? "application/octet-stream" }); res.end(await readFile(file)); }
+  let status = 200;
+  try { if ((await stat(file)).isDirectory()) file = join(file, "index.html"); } catch { file = join(SITE, "404.html"); status = 404; }
+  try { res.writeHead(status, { "content-type": TYPES[extname(file)] ?? "application/octet-stream" }); res.end(await readFile(file)); }
   catch { res.writeHead(404).end(); }
 });
 await new Promise((r) => server.listen(PORT, "127.0.0.1", r));
@@ -85,8 +86,11 @@ for (const width of WIDTHS) {
   const page = await ctx.newPage();
   const hosts = new Set();
   page.on("request", (rq) => hosts.add(new URL(rq.url()).host));
+  page.on("response", (rs) => { if (rs.status() >= 400) problems.push(`@${width}: ${rs.status()} ${new URL(rs.url()).pathname}`); });
   for (const [name, path] of PAGES) {
     await page.goto(BASE + path, { waitUntil: "networkidle" });
+    await page.mouse.wheel(0, 4000); // bring footer links into view so their prefetches run
+    await page.waitForTimeout(800);
     if (name === "home") {
       const ok = await page.getByRole("heading", { name: "Try it here, no download" }).isVisible();
       if (!ok) problems.push(`home@${width}: no playground heading`);

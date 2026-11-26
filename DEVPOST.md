@@ -75,11 +75,11 @@ build, a VM option, macOS and Linux account setup.]
 
 ## Built with
 
-python, powershell, pyinstaller, pytest, next.js, typescript, tailwindcss, netlify, claude-code
+python, powershell, pyinstaller, pytest, next.js, typescript, tailwindcss, vercel, claude-code
 
 ## Links
 
-- Live demo: https://spare-room-demo.netlify.app
+- Live demo: https://spare-room-demo.vercel.app
 - Code: https://github.com/Nebiyu-6249/spare-room
 - Release: https://github.com/Nebiyu-6249/spare-room/releases/latest
-- Video: https://spare-room-demo.netlify.app/real-demo.mp4 (also on the home page). [PLACEHOLDER: if Devpost needs a YouTube or Vimeo link, upload web/public/real-demo.mp4 there and paste it here.]
+- Video: https://spare-room-demo.vercel.app/real-demo.mp4 (also on the home page). [PLACEHOLDER: if Devpost needs a YouTube or Vimeo link, upload web/public/real-demo.mp4 there and paste it here.]

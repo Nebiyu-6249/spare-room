@@ -407,3 +407,10 @@ Tests: 86 passing.
   exceeded - new deploys are blocked until credits are added". Draft deploy
   accepted and checked (playground runs, only its own host contacted). The live
   site still shows the previous version until credits are added or reset.
+- Moved to Vercel (2026-11-26): https://spare-room-demo.vercel.app, deployed
+  from web/out with the Vercel CLI (project spare-room-demo). web/public/
+  vercel.json carries the same CSP and headers as _headers (a test keeps them
+  equal) and trailingSlash. Fixed Next 16's prefetch 404s on static hosts
+  (web/scripts/rsc-aliases.mjs, postbuild); check.mjs now serves real 404s and
+  fails on any. README and DEVPOST point at the Vercel URL. The video's end card
+  still shows the Netlify address, where the previous version stays up.
